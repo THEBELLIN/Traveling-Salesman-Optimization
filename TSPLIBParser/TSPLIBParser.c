@@ -5,7 +5,7 @@
 
 int main()
 {
-    printf("Hello World!\n");
+    printf("Hello ciaone!\n");
 }
 
 // Per eseguire il programma: CTRL+F5 oppure Debug > Avvia senza eseguire debug
