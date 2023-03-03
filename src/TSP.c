@@ -20,7 +20,6 @@ void parse_TSPLIB(Instance* inst)
 		{
 			int n = atoi(strtok(NULL, " :"));
 			inst->nnodes = n; 
-			printf("%d",n);
 		}
 	}
 }
