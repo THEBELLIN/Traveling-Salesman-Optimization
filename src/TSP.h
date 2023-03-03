@@ -13,8 +13,9 @@
 #define EPSILON 1e-9
 #define VERBOSE 1			//  0, 10, 20, 30, 40, 50
 
-//TODO implement basic stuff, basic system, data structure, reading instance TSPLIB, plot instance, parse command line, generate random data
-
+//TODO L implement basic stuff, basic system, data structure, reading instance TSPLIB,  parse command line, 
+//TODO M plot instance, generate random data
+//DONE
 typedef struct
 {
 	double x, y;
@@ -30,7 +31,7 @@ typedef struct
 	int randomseed;
 
 	double tstart;
-	double zbest, tbest;
+	double zbest, tbest, bestlb;
 	int* bestsol;
 
 }Instance;
