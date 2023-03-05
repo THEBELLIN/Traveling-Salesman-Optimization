@@ -3,8 +3,9 @@
 int main(int argc, char** argv)
 {
 	Instance instance;
-	instance.inputfile = "../data/att48.tsp";
+	initialize_instance(&instance);
+	parse_args(&instance, argc, argv);
 	parse_TSPLIB(&instance);
-	printf("%d", instance.nnodes);
+	print_points(&instance);
 	return 0;
 }

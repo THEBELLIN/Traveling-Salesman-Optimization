@@ -4,26 +4,56 @@
 
 void parse_TSPLIB(Instance*);
 void print_error(char*);
+void initialize_instance(Instance*);
+void parse_args(Instance*, int, char**);
+void print_points(Instance*);
 
+void initialize_instance(Instance* inst)
+{
+	inst->nnodes = -1;
+}
+
+void parse_args(Instance* inst, int argc, char** argv)
+{
+	if (argc < 2)
+		print_error("Not enough arguments in the command line while launching the program");
+	int arg = 2;
+	for (int i = 1; i < argc; i++)
+	{
+		if (strncmp(argv[i], "-f", 2) == 0) //input file
+		{
+			strcpy(inst->inputfile, argv[++i]);
+			continue;
+		}
+	}
+}
 
 void parse_TSPLIB(Instance* inst)
 {
 	FILE* fin = fopen(inst->inputfile, "r");
+	printf("%s", inst->inputfile);
 	if (fin == NULL)
-		printf("File not found");
+		print_error("input file not opened correctly");
 
 	char line[180];
 
 	//read dimension and set nnnodes in instance
-	while (fgets(line, sizeof(line), fin) != NULL && inst->nnodes<0)
+	while (fgets(line, sizeof(line), fin) != NULL)
 	{
-		char* cm = strtok(line, " :");
-		if (strcmp(cm, "DIMENSION") == 0 )
+		char* par = strtok(line, " :");
+		if (strncmp(par, "NODE_COORD_SECTION", 18) == 0)
+		{
+			if (inst->nnodes < 0)
+				print_error("Starting points coordinate before having the dimension");
+			break;
+		}
+		if (strcmp(par, "DIMENSION", 9) == 0 )
 		{
 			if (inst->nnodes > 0)
 				print_error("Dimension of dataset already set");
 			int n = atoi(strtok(NULL, " :"));
 			inst->nnodes = n; 
+			continue;
 		}
 	}
 
@@ -34,14 +64,23 @@ void parse_TSPLIB(Instance* inst)
 	for (int i = 0; i < inst->nnodes; i++)
 	{
 		fgets(line, sizeof(line), fin);
-		int x = strtok(line, " ");
-		x = strtok(NULL, " "); //skip index
-		int y = strtok(NULL, " ");
+		char* token = strtok(line, " ");	//skip index
+		token = strtok(NULL, " ");
+		double x = atof(token); 
+		token = strtok(NULL, " ");
+		double y = atof(token);
 		Point p;
 		p.x = x;
 		p.y = y;
 		inst->points[i] = p;
 	}
+}
+
+void print_points(Instance* inst)
+{
+	printf("\nPOINTS:\n");
+	for (int i = 0; i < inst->nnodes; i++)
+		printf("%f, %f \n", inst->points[i].x, inst->points[i].y);
 }
 
 void print_error(char* msg)
