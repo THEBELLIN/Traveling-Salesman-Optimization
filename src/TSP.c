@@ -3,12 +3,14 @@
 
 
 void parse_TSPLIB(Instance*);
-void print_error(char*);
+void print_error(const char*);
 void initialize_instance(Instance*);
 void parse_args(Instance*, int, char**);
 void print_points(Instance*);
 Point* generate_random_points(int);
 Point* generate_random_points_range(int, double, double);
+void free_instance(Instance*);
+double distance(Point*, Point*);
 
 void initialize_instance(Instance* inst)
 {
@@ -85,7 +87,7 @@ void print_points(Instance* inst)
 		printf("%f, %f \n", inst->points[i].x, inst->points[i].y);
 }
 
-void print_error(char* msg)
+void print_error(const char* msg)
 {
 	printf("ERROR: %s", msg);
 	exit(1);
@@ -123,4 +125,16 @@ Point* generate_random_points_range(int n, double range_min, double range_max)
 		points[i] = p;
 	}
 	return points;
+}
+
+void free_instance(Instance* inst)
+{
+	free(inst->points);
+}
+
+double distance(Point* p1, Point* p2)
+{
+	double d = 0;
+	d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));
+	return d;
 }
