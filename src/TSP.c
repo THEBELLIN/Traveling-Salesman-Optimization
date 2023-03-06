@@ -7,6 +7,8 @@ void print_error(char*);
 void initialize_instance(Instance*);
 void parse_args(Instance*, int, char**);
 void print_points(Instance*);
+Point* generate_random_points(int);
+Point* generate_random_points_range(int, double, double);
 
 void initialize_instance(Instance* inst)
 {
@@ -87,4 +89,38 @@ void print_error(char* msg)
 {
 	printf("ERROR: %s", msg);
 	exit(1);
+}
+
+Point* generate_random_points(int n)
+{
+	//allocate memory
+	Point* points = (Point*) calloc(n, sizeof(Point));
+
+	//generation
+	double range_min = 0;
+	double range_max = 10000;
+	for (int i = 0; i < n; i++)
+	{
+		Point p;
+		p.x = ((double)rand() / RAND_MAX) * (range_max - range_min) + range_min;
+		p.y = ((double)rand() / RAND_MAX) * (range_max - range_min) + range_min;
+		points[i] = p;
+	}
+	return points;
+}
+
+Point* generate_random_points_range(int n, double range_min, double range_max)
+{
+	//allocate memory
+	Point* points = (Point*)calloc(n, sizeof(Point));
+
+	//generation
+	for (int i = 0; i < n; i++)
+	{
+		Point p;
+		p.x = ((double)rand() / RAND_MAX) * (range_max - range_min) + range_min;
+		p.y = ((double)rand() / RAND_MAX) * (range_max - range_min) + range_min;
+		points[i] = p;
+	}
+	return points;
 }
