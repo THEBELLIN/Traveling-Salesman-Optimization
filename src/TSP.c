@@ -127,10 +127,13 @@ Point* generate_random_points_range(int n, double range_min, double range_max)
 	}
 	return points;
 }
+
 // creates a graph of the cycle on gnuplot
 void plot_generator(Instance* insta) {
 	FILE* out;
-	out = fopen("./plot/data.dat", "w");
+	out = fopen("../../Traveling-Salesman-Optimization/data/data.dat", "w");
+	if (out == NULL)
+		print_error("Error in opening output data file");
 	for (int i = 0; i < insta->nnodes - 1; i++) {
 		fprintf(out, "%f %f\n", insta->points[insta->bestsol[i]].x, insta->points[insta->bestsol[i]].y);
 		fprintf(out, "%f %f\n\n\n", insta->points[insta->bestsol[i + 1]].x, insta->points[insta->bestsol[i + 1]].y);
@@ -140,7 +143,8 @@ void plot_generator(Instance* insta) {
 	fprintf(out, "%f %f\n\n\n", insta->points[insta->bestsol[0]].x, insta->points[insta->bestsol[0]].y);
 	fclose(out);
 
-	system("gnuplot ./plot/commands.gp");
+	chdir("../../Traveling-Salesman-Optimization/plot");
+	system("gnuplot commands.gp");
 }
 
 
