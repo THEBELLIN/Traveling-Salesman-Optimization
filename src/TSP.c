@@ -141,21 +141,12 @@ void plot_generator(Instance* inst) {
 	out_lines = fopen("../../Traveling-Salesman-Optimization/data/data_lines.dat", "w");
 	out_points = fopen("../../Traveling-Salesman-Optimization/data/data_points.dat", "w");
 	if (out_lines == NULL || out_points == NULL)
-<<<<<<< HEAD
 	{
 		fclose(out_lines);
 		fclose(out_points);
 		print_error("Error in opening output data file");
 	}
-	for (int i = 0; i < inst->nnodes - 1; i++) {
-		fprintf(out_points, "%f %f\n", inst->points[i].x, inst->points[i].y);
-		if (inst->bestsol != NULL)
-		{
-			fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[i]].x, inst->points[inst->bestsol[i]].y);
-			fprintf(out_lines, "%f %f\n\n\n", inst->points[inst->bestsol[i + 1]].x, inst->points[inst->bestsol[i + 1]].y);
-		}
-	}
-		print_error("Error in opening output data file");
+
 	for (int i = 0; i < inst->nnodes - 1; i++) {
 		fprintf(out_points, "%f %f\n", inst->points[i].x, inst->points[i].y);
 		if (inst->bestsol != NULL)
@@ -175,7 +166,7 @@ void plot_generator(Instance* inst) {
 
 	chdir("../../Traveling-Salesman-Optimization/plot");
 	if(inst->bestsol != NULL)
-		system("gnuplot gp_lines.gp");
+		system("gnuplot -persistent gp_lines.gp");
 	else
 		system("gnuplot gp_points.gp");
 }
