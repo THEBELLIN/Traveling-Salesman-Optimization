@@ -11,11 +11,8 @@
 
 #define XSMALL 1e-5
 #define EPSILON 1e-9
-#define VERBOSE 1			//  0, 10, 20, 30, 40, 50
+//#define VERBOSE 1			//  0, 10, 20, 30, 40, 50
 
-//TODO L  
-//TODO M plot instance, 
-//DONE reading instance TSPLIB, parse command line, basic system, data structure, implement basic stuff, generate random data.
 typedef struct
 {
 	double x, y;
@@ -33,6 +30,7 @@ typedef struct
 	double tstart;
 	double zbest, tbest, bestlb;
 	int* bestsol;
+	int verbose;			//  0, 10, 20, 30, 40, 50
 
 }Instance;
 
