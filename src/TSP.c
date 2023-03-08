@@ -16,6 +16,7 @@ void plot_generator(Instance*);
 void initialize_instance(Instance* inst)
 {
 	inst->nnodes = -1;
+	inst->bestsol = NULL;
 }
 
 void parse_args(Instance* inst, int argc, char** argv)
@@ -28,6 +29,11 @@ void parse_args(Instance* inst, int argc, char** argv)
 		if (strncmp(argv[i], "-f", 2) == 0) //input file
 		{
 			strcpy(inst->inputfile, argv[++i]);
+			continue;
+		}
+		if (strncmp(argv[i], "-v", 2) == 0) //verbose level
+		{
+			strcpy(inst->verbose, atoi(argv[++i]));
 			continue;
 		}
 	}
@@ -129,25 +135,36 @@ Point* generate_random_points_range(int n, double range_min, double range_max)
 }
 
 // creates a graph of the cycle on gnuplot
-void plot_generator(Instance* insta) {
-	FILE* out;
-	out = fopen("../../Traveling-Salesman-Optimization/data/data.dat", "w");
-	if (out == NULL)
+void plot_generator(Instance* inst) {
+	FILE* out_lines;
+	FILE* out_points;
+	out_lines = fopen("../../Traveling-Salesman-Optimization/data/data_lines.dat", "w");
+	out_points = fopen("../../Traveling-Salesman-Optimization/data/data_points.dat", "w");
+	if (out_lines == NULL || out_points == NULL)
 		print_error("Error in opening output data file");
-	for (int i = 0; i < insta->nnodes - 1; i++) {
-		fprintf(out, "%f %f\n", insta->points[insta->bestsol[i]].x, insta->points[insta->bestsol[i]].y);
-		fprintf(out, "%f %f\n\n\n", insta->points[insta->bestsol[i + 1]].x, insta->points[insta->bestsol[i + 1]].y);
+	for (int i = 0; i < inst->nnodes - 1; i++) {
+		fprintf(out_points, "%f %f\n", inst->points[i].x, inst->points[i].y);
+		if (inst->bestsol != NULL)
+		{
+			fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[i]].x, inst->points[inst->bestsol[i]].y);
+			fprintf(out_lines, "%f %f\n\n\n", inst->points[inst->bestsol[i + 1]].x, inst->points[inst->bestsol[i + 1]].y);
+		}
 	}
-
-	fprintf(out, "%f %f\n", insta->points[insta->bestsol[insta->nnodes - 1]].x, insta->points[insta->bestsol[insta->nnodes - 1]].y);
-	fprintf(out, "%f %f\n\n\n", insta->points[insta->bestsol[0]].x, insta->points[insta->bestsol[0]].y);
-	fclose(out);
+	fprintf(out_points, "%f %f\n", inst->points[inst->nnodes-1].x, inst->points[inst->nnodes-1].y);
+	if (!inst->bestsol == NULL)
+	{
+		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[inst->nnodes - 1]].x, inst->points[inst->bestsol[inst->nnodes - 1]].y);
+		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[0]].x, inst->points[inst->bestsol[0]].y);
+	}
+	fclose(out_lines);
+	fclose(out_points);
 
 	chdir("../../Traveling-Salesman-Optimization/plot");
-	system("gnuplot commands.gp");
+	if(inst->bestsol != NULL)
+		system("gnuplot gp_lines.gp");
+	else
+		system("gnuplot gp_points.gp");
 }
-
-
 
 void free_instance(Instance* inst)
 {
