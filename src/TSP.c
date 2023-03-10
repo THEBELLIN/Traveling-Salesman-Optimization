@@ -168,7 +168,7 @@ void plot_generator(Instance* inst) {
 	if(inst->bestsol != NULL)
 		system("gnuplot -persistent gp_lines.gp");
 	else
-		system("gnuplot gp_points.gp");
+		system("gnuplot -persistent gp_points.gp");
 }
 
 void free_instance(Instance* inst)
