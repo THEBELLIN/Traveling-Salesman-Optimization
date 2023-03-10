@@ -12,11 +12,14 @@ Point* generate_random_points_range(int, double, double);
 void free_instance(Instance*);
 double distance(Point*, Point*);
 void plot_generator(Instance*);
+double rand01();
 
 void initialize_instance(Instance* inst)
 {
 	inst->nnodes = -1;
 	inst->bestsol = NULL;
+	inst->cost = NULL;
+	inst->randomseed = 1337;
 }
 
 void parse_args(Instance* inst, int argc, char** argv)
@@ -34,6 +37,11 @@ void parse_args(Instance* inst, int argc, char** argv)
 		if (strncmp(argv[i], "-v", 2) == 0) //verbose level
 		{
 			strcpy(inst->verbose, atoi(argv[++i]));
+			continue;
+		}
+		if (strncmp(argv[i], "-seed", 5) == 0) //verbose level
+		{
+			inst->randomseed = atoi(argv[++i]);
 			continue;
 		}
 	}
@@ -66,6 +74,7 @@ void parse_TSPLIB(Instance* inst)
 			inst->nnodes = n; 
 			continue;
 		}
+		inst->cost = (double*)calloc(inst->nnodes * inst->nnodes * sizeof(double));
 	}
 
 	//allocate memory
@@ -182,3 +191,11 @@ double distance(Point* p1, Point* p2)
 	d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));
 	return d;
 }
+
+double rand01()
+{
+	return (double)rand() / RAND_MAX;
+}
+
+//get_cost(i, j, inst)
+//compute or return matrix value if already there

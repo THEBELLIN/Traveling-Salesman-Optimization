@@ -22,6 +22,7 @@ typedef struct
 {
 	Point* points;
 	int nnodes;
+	double* cost;
 
 	char inputfile[1000];
 	char outputfile[1000];
