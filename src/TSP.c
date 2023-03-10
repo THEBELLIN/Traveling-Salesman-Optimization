@@ -1,18 +1,6 @@
-#include "TSP.h"
+#include "TSP.h"  
+#include "utility.h";
 #include <time.h>
-
-
-void parse_TSPLIB(Instance*);
-void print_error(const char*);
-void initialize_instance(Instance*);
-void parse_args(Instance*, int, char**);
-void print_points(Instance*);
-Point* generate_random_points(int);
-Point* generate_random_points_range(int, double, double);
-void free_instance(Instance*);
-double distance(Point*, Point*);
-void plot_generator(Instance*);
-double rand01();
 
 void initialize_instance(Instance* inst)
 {
@@ -74,11 +62,11 @@ void parse_TSPLIB(Instance* inst)
 			inst->nnodes = n; 
 			continue;
 		}
-		inst->cost = (double*)calloc(inst->nnodes * inst->nnodes * sizeof(double));
+		inst->cost = CALLOC(inst->nnodes, double);
 	}
 
 	//allocate memory
-	inst->points = (Point*) calloc(inst->nnodes, sizeof(Point));
+	inst->points = CALLOC(inst->nnodes, Point);
 
 	//reading coordinates
 	for (int i = 0; i < inst->nnodes; i++)
@@ -112,7 +100,7 @@ void print_error(const char* msg)
 Point* generate_random_points(int n)
 {
 	//allocate memory
-	Point* points = (Point*) calloc(n, sizeof(Point));
+	Point* points = CALLOC(n, Point);
 
 	//generation
 	double range_min = 0;
@@ -130,7 +118,7 @@ Point* generate_random_points(int n)
 Point* generate_random_points_range(int n, double range_min, double range_max)
 {
 	//allocate memory
-	Point* points = (Point*)calloc(n, sizeof(Point));
+	Point* points = CALLOC(n, Point);
 
 	//generation
 	for (int i = 0; i < n; i++)

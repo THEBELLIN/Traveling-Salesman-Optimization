@@ -8,11 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+//===========constants=================
 #define XSMALL 1e-5
 #define EPSILON 1e-9
 //#define VERBOSE 1			//  0, 10, 20, 30, 40, 50
 
+//===============structs===============
 typedef struct
 {
 	double x, y;
@@ -35,8 +36,22 @@ typedef struct
 
 }Instance;
 
+//==================inline functions===================================
 inline int imax(int i1, int i2) { return (i1 > i2) ? i1 : i2; }
 inline double dmin(double d1, double d2) { return (d1 < d2) ? d1 : d2; }
 inline double dmax(double d1, double d2) { return (d1 > d2) ? d1 : d2; }
+
+//=====================functions=======================================
+void parse_TSPLIB(Instance*);
+void print_error(const char*);
+void initialize_instance(Instance*);
+void parse_args(Instance*, int, char**);
+void print_points(Instance*);
+Point* generate_random_points(int);
+Point* generate_random_points_range(int, double, double);
+void free_instance(Instance*);
+double distance(Point*, Point*);
+void plot_generator(Instance*);
+double rand01();
 
 #endif
