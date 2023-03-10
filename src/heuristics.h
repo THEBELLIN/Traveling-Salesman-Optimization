@@ -1,7 +1,7 @@
 #ifndef HEURISTICS_H
 #define HEURISTICS_H
 
-#include "TSP.h";
+#include "TSP.h"
 
 Point* convex_hull(Instance*);
 

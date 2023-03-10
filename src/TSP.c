@@ -1,5 +1,5 @@
 #include "TSP.h"  
-#include "utility.h";
+#include "utility.h"
 #include <time.h>
 
 void initialize_instance(Instance* inst)
