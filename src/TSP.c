@@ -1,19 +1,6 @@
 #include "TSP.h"
 #include <time.h>
 
-
-void parse_TSPLIB(Instance*);
-void print_error(const char*);
-void initialize_instance(Instance*);
-void parse_args(Instance*, int, char**);
-void print_points(Instance*);
-Point* generate_random_points(int);
-Point* generate_random_points_range(int, double, double);
-void free_instance(Instance*);
-double distance(Point*, Point*);
-void plot_generator(Instance*);
-double rand01();
-
 void initialize_instance(Instance* inst)
 {
 	inst->nnodes = -1;
