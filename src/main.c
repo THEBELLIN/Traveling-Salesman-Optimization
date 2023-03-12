@@ -12,6 +12,7 @@ int main(int argc, char** argv)
 	initialize_cost(&instance);
 	em_options o = NORMAL;
 	extra_mileage(&instance, MAX_DIST, &o);
+	system("cd");
 	plot_generator(&instance);
 	free_instance(&instance);
 	return 0;
