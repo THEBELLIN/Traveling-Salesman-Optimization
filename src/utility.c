@@ -24,3 +24,22 @@ bool ccw(const Point* a, const Point* b, const Point* c)
 {
     return (b->x - a->x) * (c->y - a->y) > (b->y - a->y) * (c->x - a->x);
 }
+
+void swap(int* array, int ind1, int ind2) {
+    int temp;
+    temp = array[ind1];
+    array[ind1] = array[ind2];
+    array[ind2] = temp;
+}
+
+// initialize the array of costs
+void initialize_cost(Instance* inst) {
+    int size = (inst->nnodes) * (inst->nnodes);
+    int n = inst->nnodes;
+    inst->cost = (double*)calloc(size, sizeof(double));
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            inst->cost[i * n + j] = distance(&(inst->points[i]), &(inst->points[j]));
+        }
+    }
+}

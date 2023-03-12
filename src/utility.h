@@ -15,5 +15,7 @@ inline double dmax(double d1, double d2) { return (d1 > d2) ? d1 : d2; }
 //====================functions============================
 int comparePoints(const Point*, const Point*);
 bool ccw(const Point*, const Point*, const Point*);
+void swap(int*, int, int);
+void initialize_cost(Instance*);
 
 #endif
