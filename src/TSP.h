@@ -11,6 +11,7 @@
 //===========constants=================
 #define XSMALL 1e-5
 #define EPSILON 1e-9
+#define MAX 1e5
 //#define VERBOSE 1			//  0, 10, 20, 30, 40, 50
 
 //===============structs===============
