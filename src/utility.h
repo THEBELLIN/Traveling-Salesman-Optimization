@@ -6,6 +6,7 @@
 #define MALLOC(n, type) ((type *) malloc (n * sizeof(type)))
 #define CALLOC(n, type) ((type *) calloc (n, sizeof(type)))
 #define REALLOC(ptr, n, type) (realloc(ptr, n * sizeof(type)))
+#define COST(i1, i2) (inst->cost[i1 * inst->nnodes + i2])
 
 //==================inline functions===================================
 inline int imax(int i1, int i2) { return (i1 > i2) ? i1 : i2; }

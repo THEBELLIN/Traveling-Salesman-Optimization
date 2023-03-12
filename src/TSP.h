@@ -11,13 +11,21 @@
 //===========constants=================
 #define XSMALL 1e-5
 #define EPSILON 1e-9
+#define INF_DOUBLE 1e50
 //#define VERBOSE 1			//  0, 10, 20, 30, 40, 50
 
 //===============structs===============
 typedef struct
 {
-	double x, y;
+	double x;
+	double y;
 }Point;
+
+typedef struct
+{
+	int from;
+	int to;
+}edge;
 
 typedef struct
 {
@@ -30,7 +38,7 @@ typedef struct
 	int randomseed;
 
 	double tstart;
-	double zbest, tbest, bestlb;
+	double bestcost, tbest, bestlb;
 	int* bestsol;
 	int verbose;			//  0, 10, 20, 30, 40, 50
 

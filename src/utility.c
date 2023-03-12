@@ -34,8 +34,8 @@ void swap(int* array, int ind1, int ind2) {
 
 // initialize the array of costs
 void initialize_cost(Instance* inst) {
-    int size = (inst->nnodes) * (inst->nnodes);
     int n = inst->nnodes;
+    int size = n * n;
     inst->cost = (double*)calloc(size, sizeof(double));
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {

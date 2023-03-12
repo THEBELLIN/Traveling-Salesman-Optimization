@@ -62,11 +62,12 @@ void parse_TSPLIB(Instance* inst)
 			inst->nnodes = n; 
 			continue;
 		}
-		inst->cost = CALLOC(inst->nnodes, double);
 	}
 
 	//allocate memory
 	inst->points = CALLOC(inst->nnodes, Point);
+	inst->cost = CALLOC(inst->nnodes * inst->nnodes, double);
+	inst->bestsol = CALLOC(inst->nnodes + 1, int);
 
 	//reading coordinates
 	for (int i = 0; i < inst->nnodes; i++)
@@ -170,6 +171,8 @@ void plot_generator(Instance* inst) {
 
 void free_instance(Instance* inst)
 {
+	free(inst->bestsol);
+	free(inst->cost);
 	free(inst->points);
 }
 
