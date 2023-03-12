@@ -17,6 +17,9 @@ int comparePoints(const Point* p1, const Point* p2)
     return 0;
 }
 
+//check if the triangle made of a,b,c is counterclockwise oriented and not flat
+//"p2 is under p3"
+// figure and explaination at https://www.lri.fr/~marche/MPRI-2-36-1/2014/hull.pdf
 bool ccw(const Point* a, const Point* b, const Point* c) 
 {
     return (b->x - a->x) * (c->y - a->y) > (b->y - a->y) * (c->x - a->x);

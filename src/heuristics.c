@@ -3,6 +3,8 @@
 #include "heuristics.h"
 #include <assert.h>
 
+//returns the convex hull of points in instance
+//NOTE: THIS REARRANGES POINTS TO BE SORTED -> INDEXES CHANGE
 Point* convex_hull(Instance* inst, int* hsize) //mostly found online
 {
 	if (inst->nnodes < 1)
@@ -46,4 +48,18 @@ Point* convex_hull(Instance* inst, int* hsize) //mostly found online
     hull = xrealloc(hull, size * sizeof(Point));
     *hsize = size;
     return hull;
+}
+
+void extra_mileage(Instance* inst, em_start start, em_opt opt)
+{
+    if (start == RAND)
+    {
+
+    }
+    else if (start == MAX_DIST)
+    {
+
+    }
+    else
+        print_error("Wrong starting flag in extra mileage");
 }
