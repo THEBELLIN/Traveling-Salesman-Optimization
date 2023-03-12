@@ -71,12 +71,13 @@ void extra_mileage(Instance* inst, em_start start, em_options* options)
 void extra_mileage_det(Instance* inst, em_start start)
 {
     //construct cost matrix if not already done
-    if(inst->cost==NULL)
-        initialize_cost(inst);
+    if (inst->cost == NULL)
+        print_error("Cost matrix not initialized");
 
     //select startind indexes
     int i1, i2;
     int n = inst->nnodes;
+
     if (start == RAND)
     {
         i1 = rand() % n;
@@ -97,7 +98,6 @@ void extra_mileage_det(Instance* inst, em_start start)
                 i1 = i / n;
                 i2 = i % n;
             }
-
         }
     }
     else
@@ -106,14 +106,13 @@ void extra_mileage_det(Instance* inst, em_start start)
     //extra mileage loop
     double curr_cost = 0;
     int current_nodes = 2;
-    int* sol = MALLOC(n+1 , int);
     for (int i = 0; i < n; i++)
-        sol[i] = i;
-    sol[n] = i1;
+        inst->bestsol[i] = i;
+    inst->bestsol[n] = i1;
     //set current tour
-    swap(sol, 0, i1);
-    swap(sol, 1, i2);
-    swap(sol, 2, n);
+    swap(inst->bestsol, 0, i1);
+    swap(inst->bestsol, 1, i2);
+    swap(inst->bestsol, 2, n);
     curr_cost += 2 * COST(i1, i2);
     //untill all nodes are added
     while (current_nodes < n)
@@ -123,15 +122,15 @@ void extra_mileage_det(Instance* inst, em_start start)
         int place;
         int new_point_index;
         //for every edge in current tour
-        for (int i = 0; i < current_nodes; i++) //considering edge sol[i]->sol[i+1]
+        for (int i = 0; i < current_nodes; i++) //considering edge inst->bestsol[i]->inst->bestsol[i+1]
         {
             edge e;
-            e.from = sol[i];
-            e.to = sol[i + 1];
+            e.from = inst->bestsol[i];
+            e.to = inst->bestsol[i + 1];
             //for all points not already considered
-            for (int j = current_nodes + 1; j < n + 1; j++) //considering point sol[j]
+            for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->bestsol[j]
             {
-                new_cost = curr_cost - COST(e.from, e.to) + COST(e.from, sol[j]) + COST(sol[j], e.to);
+                new_cost = curr_cost - COST(e.from, e.to) + COST(e.from, inst->bestsol[j]) + COST(inst->bestsol[j], e.to);
                 if (new_cost < min_new_cost)
                 {
                     min_new_cost = new_cost;
@@ -142,17 +141,16 @@ void extra_mileage_det(Instance* inst, em_start start)
         }
         curr_cost = min_new_cost;
         current_nodes++;
-        add_in_position(new_point_index, place, sol, current_nodes+1);
+        add_in_position(new_point_index, place, inst->bestsol, current_nodes+1);
         //DEBUG
         /*for (int i = 0; i < current_nodes + 1; i++)
-            printf("%d ", sol[i]);
+            printf("%d ", inst->bestsol[i]);
         printf(" || ");
         for (int i = current_nodes+1; i < n + 1; i++)
-            printf("%d ", sol[i]);
+            printf("%d ", inst->bestsol[i]);
         printf("\n");*/
     }
 
     //save solution
-    inst->bestsol = sol;
     inst->bestcost = curr_cost;
 }
