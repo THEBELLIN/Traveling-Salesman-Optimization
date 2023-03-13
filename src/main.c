@@ -10,8 +10,8 @@ int main(int argc, char** argv)
 	srand(instance.randomseed);
 	parse_TSPLIB(&instance);
 	initialize_cost(&instance);
-	em_options o = NORMAL;					//deterministic extra_mileage
-	extra_mileage(&instance, CONV_HULL, &o);		//RAND, MAX_DIST, CONV_HULL
+	em_options o = GRASP3(0.7, 0.2);							//NORMAL, GRASP2(p), GRASP3(p1, p2)
+	extra_mileage(&instance, MAX_DIST, &o);		//RAND, MAX_DIST, CONV_HULL
 	plot_generator(&instance);
 	free_instance(&instance);
 	return 0;
