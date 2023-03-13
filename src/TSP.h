@@ -55,6 +55,5 @@ Point* generate_random_points_range(int, double, double);
 void free_instance(Instance*);
 double distance(Point*, Point*);
 void plot_generator(Instance*);
-double rand01();
 
 #endif

@@ -2,14 +2,18 @@
 #define HEURISTICS_H
 
 #include "TSP.h"
+#include "utility.h"
 
 #define NORMAL {.opt=NORM, .p1=1, .p2=0};
+#define GRASP2(p) {.opt=GRASP_2, .p1=p, .p2=0};
+#define GRASP3(p, pp) {.opt=GRASP_3, .p1=p, .p2=pp};
 
 //option to select the method for extra mileage algorithm  start
 typedef enum
 {
 	RAND,		//select 2 nodes at random for the strating set
-	MAX_DIST	//select the 2 most distant nodes for the starting set
+	MAX_DIST,	//select the 2 most distant nodes for the starting set
+	CONV_HULL	//start with the convex hull
 }em_start;
 
 //option to select the method for extra mileage algorithm 
@@ -23,13 +27,16 @@ typedef enum
 typedef struct
 {
 	em_opt opt;
-	int p1;
-	int p2;
+	double p1;
+	double p2;
 }em_options;
 
 Point* convex_hull(Instance*);
+int* points_to_indexes(Instance*, Point*, int);
 void add_in_position(int, int, int*, int);
 void extra_mileage(Instance*, int, em_options*);
 void extra_mileage_det(Instance*, int);
+void extra_mileage_grasp2(Instance*, em_start, double);
+void extra_mileage_grasp3(Instance*, em_start, double, double);
 
 #endif

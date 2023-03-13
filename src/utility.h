@@ -18,5 +18,8 @@ int comparePoints(const Point*, const Point*);
 bool ccw(const Point*, const Point*, const Point*);
 void swap(int*, int, int);
 void initialize_cost(Instance*);
+bool is_equal_double(double, double);
+bool is_equal_points(Point*, Point*);
+double rand01();
 
 #endif

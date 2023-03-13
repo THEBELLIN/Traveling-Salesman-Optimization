@@ -43,3 +43,20 @@ void initialize_cost(Instance* inst) {
         }
     }
 }
+
+//comparison between double
+bool is_equal_double(double a, double b)
+{
+    return fabs(a - b) < EPSILON;
+}
+
+//check if two points are equal
+bool is_equal_points(Point* p1, Point* p2)
+{
+    return(is_equal_double(p1->x, p2->x) && is_equal_double(p1->y, p2->y));
+}
+
+double rand01()
+{
+    return (double)rand() / RAND_MAX;
+}
