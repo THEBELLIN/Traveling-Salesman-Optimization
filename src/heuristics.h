@@ -31,7 +31,6 @@ typedef struct
 	double p2;
 }em_options;
 
-Point* convex_hull(Instance*, int*);
 int* points_to_indexes(Instance*, Point*, int);
 void add_in_position(int, int, int*, int);
 void extra_mileage(Instance*, int, em_options*);
@@ -42,4 +41,5 @@ void nearest_neighbor_grasp2(Instance*, int, double, double);
 void nearest_neighbor_grasp(Instance*, int, double);
 int nearest_neighbor_allstart(Instance*);
 void nearest_neighbor(Instance*, int);
+Point* convex_hull(Point*, int, int*);
 #endif

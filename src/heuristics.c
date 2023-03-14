@@ -3,55 +3,48 @@
 #include "heuristics.h"
 #include <assert.h>
 
-//returns the convex hull of points in instance
-Point* convex_hull(Instance* inst, int* hsize) //mostly found online
-{
-	if (inst->nnodes < 1)
-		return NULL;
-
-    Point* hull;
-    Point* points_copy;
-	int capacity = 4;
-    int size = 0;
-    int n = inst->nnodes;
-	hull = MALLOC(capacity, Point);
-    points_copy = MALLOC(n, Point);
-    for (int i = 0; i < n; i++)
-        points_copy[i] = inst->points[i];
-
-	qsort(points_copy, n, sizeof(Point), comparePoints);
-
-    /* lower hull */
-    for (int i = 0; i < n; ++i) 
-    {
-        while (size >= 2 && !ccw(&hull[size - 2], &hull[size - 1], &points_copy[i]))
-            --size;
-        if (size == capacity) 
-        {
-            capacity *= 2;
-            hull = REALLOC(hull, capacity, Point);
-        }
-        assert(size >= 0 && size < capacity);
-        hull[size++] = points_copy[i];
+//returns the convex hull of points
+Point* convex_hull(Point* p, int len, int* hsize) {
+    if (len == 0) {
+        *hsize = 0;
+        return NULL;
     }
 
-    /* upper hull */
-    int t = size + 1;
-    for (int i = n - 1; i >= 0; i--) {
-        while (size >= t && !ccw(&hull[size - 2], &hull[size - 1], &points_copy[i]))
+    int i, size = 0, capacity = 4;
+    Point* hull = MALLOC(capacity, Point);
+
+    qsort(p, len, sizeof(Point), comparePoints);
+
+    /* lower hull */
+    for (i = 0; i < len; ++i) {
+        while (size >= 2 && !ccw(&hull[size - 2], &hull[size - 1], &p[i]))
             --size;
         if (size == capacity) {
             capacity *= 2;
             hull = REALLOC(hull, capacity, Point);
         }
         assert(size >= 0 && size < capacity);
-        hull[size++] = inst->points[i];
+        hull[size] = p[i];
+        size++;
+    }
+
+    /* upper hull */
+    int t = size + 1;
+    for (i = len - 1; i >= 0; i--) {
+        while (size >= t && !ccw(&hull[size - 2], &hull[size - 1], &p[i]))
+            --size;
+        if (size == capacity) {
+            capacity *= 2;
+            hull = REALLOC(hull, capacity, Point);
+        }
+        assert(size >= 0 && size < capacity);
+        hull[size] = p[i];
+        size++;
     }
     --size;
     assert(size >= 0);
     hull = REALLOC(hull, size, Point);
     *hsize = size;
-    free(points_copy);
     return hull;
 }
 
@@ -133,7 +126,8 @@ void extra_mileage_det(Instance* inst, em_start start)
     }
     else if (start == CONV_HULL)
     {
-        Point* conv = convex_hull(inst, &n_starting);
+        //Point* conv = convex_hull(inst, &n_starting);
+        Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         starting_points = points_to_indexes(inst, conv, n_starting);
     }
     else
@@ -178,12 +172,12 @@ void extra_mileage_det(Instance* inst, em_start start)
         current_nodes++;
         add_in_position(new_point_index, place, inst->bestsol, current_nodes+1);
         //DEBUG
-        /*for (int i = 0; i < current_nodes + 1; i++)
+        for (int i = 0; i < current_nodes + 1; i++)
             printf("%d ", inst->bestsol[i]);
         printf(" || ");
         for (int i = current_nodes+1; i < n + 1; i++)
             printf("%d ", inst->bestsol[i]);
-        printf("\n");*/
+        printf("\n");
     }
 }
 
@@ -226,7 +220,7 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     }
     else if (start == CONV_HULL)
     {
-        Point* conv = convex_hull(inst, &n_starting);
+        Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         starting_points = points_to_indexes(inst, conv, n_starting);
     }
     else
@@ -335,7 +329,7 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     }
     else if (start == CONV_HULL)
     {
-        Point* conv = convex_hull(inst, &n_starting);
+        Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         starting_points = points_to_indexes(inst, conv, n_starting);
     }
     else
