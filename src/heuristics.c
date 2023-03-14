@@ -421,3 +421,227 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
         printf("\n");*/
     }
 }
+
+
+//greedy NN given a starting point O(n^2)
+void nearest_neighbor(Instance* inst, int start) {
+    if (start < 0)
+        print_error("Invalid choice of the start node");
+    // allocates the array with the current tour and the unvisited nodes
+    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+    int n = inst->nnodes;
+    int len = 0;
+    double costo = 0;
+    int last = start;
+    double min = INF_DOUBLE;
+    int best_pos;
+    // initializes the array of costs 
+    initialize_cost(inst);
+    //initialize current with the trivial permutation 0-1-2....-n
+    for (int i = 0; i < inst->nnodes; i++) {
+        current[i] = i;
+    }
+    current[n] = start;
+    // moves at the beginnig the first covered node which is the starting node
+    swap(current, 0, start);
+    len++;
+    for (int i = 1; i < inst->nnodes; i++) {
+        // finds minimum cost node from the last visited node of the tour
+        for (int j = len; j < inst->nnodes; j++) {
+            if (inst->cost[last * n + current[j]] < min) {
+                min = inst->cost[last * n + current[j]];
+                best_pos = j;
+            }
+        }
+        // update the cost and rearranges the current array
+        costo = costo + min;
+        swap(current, len, best_pos);
+        min = INF_DOUBLE;
+        last = current[len];
+        len++;
+    }
+    costo += inst->cost[start * n + last];
+    inst->bestsol = current;
+    inst->bestcost = costo;
+}
+
+// greedy NN with O(n^3) finds the best starting point and its solution
+int nearest_neighbor_allstart(Instance* inst) {
+    double best_current_cost = INF_DOUBLE;
+    int best_start;
+    for (int i = 0; i < inst->nnodes; i++) {
+        nearest_neighbor(inst, i);
+        if (inst->bestcost < best_current_cost) {
+            best_current_cost = inst->bestcost;
+            best_start = i;
+            printf("The solution has been updated\n new solution: ");
+            for (int j = 0; j < inst->nnodes; j++) {
+                printf("%d ", inst->bestsol[j]);
+            }
+            printf("\n The total cost is now: %f\n", inst->bestcost);
+        }
+    }
+    nearest_neighbor(inst, best_start);
+    return best_start;
+}
+
+void nearest_neighbor_grasp(Instance* inst, int start, double p2) {
+    if (start < 0)
+        print_error("Invalid choice of the start node");
+    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+    int n = inst->nnodes;
+    int len = 0;
+    double costo = 0;
+    int last = start;
+    double min = INF_DOUBLE;
+    double min2 = INF_DOUBLE;
+    int best_pos = -1;
+    int best_pos2 = -1;
+    initialize_cost(inst);
+    //initialize current
+    for (int i = 0; i < inst->nnodes; i++) {
+        current[i] = i;
+    }
+    current[n] = start;
+    swap(current, 0, start);
+    len++;
+    for (int i = 1; i < inst->nnodes; i++) {
+        for (int j = len; j < inst->nnodes; j++) {
+
+            if (inst->cost[last * n + current[j]] < min2) {
+
+                if (inst->cost[last * n + current[j]] < min) {
+                    min2 = min;
+                    best_pos2 = best_pos;
+                    min = inst->cost[last * n + current[j]];
+                    best_pos = j;
+                }
+                else {
+                    min2 = inst->cost[last * n + current[j]];
+                    best_pos2 = j;
+                }
+            }
+
+        }
+    }
+    double c = rand01();
+    printf("random : %f\n", c);
+    if (c < p2 && min2 < INF_DOUBLE) {
+        printf("sono nel caso dove prendo secondo migliore\n");
+        costo = costo + min2;
+        swap(current, len, best_pos2);
+        min = INF_DOUBLE;
+        min2 = INF_DOUBLE;
+        last = current[len];
+        len++;
+    }
+    else if (c > +p2) {
+        printf("sono nel caso dove prendo primo migliore\n");
+        costo = costo + min;
+        swap(current, len, best_pos);
+        min = INF_DOUBLE;
+        min2 = INF_DOUBLE;
+        last = current[len];
+        len++;
+    }
+    costo += inst->cost[start * n + last];
+    inst->bestsol = current;
+    inst->bestcost = costo;
+}
+
+
+
+
+// grasp NN given a starting point and the 2 probabities
+void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
+    if (start < 0)
+        print_error("Invalid choice of the start node");
+    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+    int n = inst->nnodes;
+    int len = 0;
+    double costo = 0;
+    int last = start;
+    double min = INF_DOUBLE;
+    double min2 = INF_DOUBLE;
+    double min3 = INF_DOUBLE;
+    int best_pos = -1;
+    int best_pos2 = -1;
+    int best_pos3 = -1;
+    initialize_cost(inst);
+    //initialize current
+    for (int i = 0; i < inst->nnodes; i++) {
+        current[i] = i;
+    }
+    current[n] = start;
+    swap(current, 0, start);
+    len++;
+    for (int i = 1; i < inst->nnodes; i++) {
+        for (int j = len; j < inst->nnodes; j++) {
+            if (inst->cost[last * n + current[j]] < min3) {
+
+                if (inst->cost[last * n + current[j]] < min2) {
+
+                    if (inst->cost[last * n + current[j]] < min) {
+
+                        min3 = min2;
+                        best_pos3 = best_pos2;
+                        min2 = min;
+                        best_pos2 = best_pos;
+                        min = inst->cost[last * n + current[j]];
+                        best_pos = j;
+
+                    }
+                    else {
+
+                        min3 = min2;
+                        best_pos3 = best_pos2;
+                        min2 = inst->cost[last * n + current[j]];
+                        best_pos2 = j;
+
+                    }
+                }
+                else {
+
+                    min3 = inst->cost[last * n + current[j]];
+                    best_pos3 = j;
+
+                }
+            }
+        }
+        double c = rand01();
+        printf("random : %f\n", c);
+        if (c < p3 && min3 < INF_DOUBLE) {
+            printf("sono nel caso dove prendo terzo migliore\n");
+            costo = costo + min3;
+            swap(current, len, best_pos3);
+            min = INF_DOUBLE;
+            min2 = INF_DOUBLE;
+            min3 = INF_DOUBLE;
+            last = current[len];
+            len++;
+        }
+        else if (p3 < c && c < p2 + p3 && min2 < INF_DOUBLE) {
+            printf("sono nel caso dove prendo secondo migliore\n");
+            costo = costo + min2;
+            swap(current, len, best_pos2);
+            min = INF_DOUBLE;
+            min2 = INF_DOUBLE;
+            min3 = INF_DOUBLE;
+            last = current[len];
+            len++;
+        }
+        else if (c > p3 + p2) {
+            printf("sono nel caso dove prendo primo migliore\n");
+            costo = costo + min;
+            swap(current, len, best_pos);
+            min = INF_DOUBLE;
+            min2 = INF_DOUBLE;
+            min3 = INF_DOUBLE;
+            last = current[len];
+            len++;
+        }
+    }
+    costo += inst->cost[start * n + last];
+    inst->bestsol = current;
+    inst->bestcost = costo;
+}
