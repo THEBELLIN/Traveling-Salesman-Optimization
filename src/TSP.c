@@ -62,11 +62,12 @@ void parse_TSPLIB(Instance* inst)
 			inst->nnodes = n; 
 			continue;
 		}
-		inst->cost = CALLOC(inst->nnodes, double);
 	}
 
 	//allocate memory
 	inst->points = CALLOC(inst->nnodes, Point);
+	inst->cost = CALLOC(inst->nnodes * inst->nnodes, double);
+	inst->bestsol = CALLOC(inst->nnodes + 1, int);
 
 	//reading coordinates
 	for (int i = 0; i < inst->nnodes; i++)
@@ -156,7 +157,7 @@ void plot_generator(Instance* inst) {
 	if (!inst->bestsol == NULL)
 	{
 		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[inst->nnodes - 1]].x, inst->points[inst->bestsol[inst->nnodes - 1]].y);
-		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[0]].x, inst->points[inst->bestsol[0]].y);
+		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[inst->nnodes]].x, inst->points[inst->bestsol[inst->nnodes]].y);
 	}
 	fclose(out_lines);
 	fclose(out_points);
@@ -170,6 +171,8 @@ void plot_generator(Instance* inst) {
 
 void free_instance(Instance* inst)
 {
+	free(inst->bestsol);
+	free(inst->cost);
 	free(inst->points);
 }
 
@@ -180,10 +183,7 @@ double distance(Point* p1, Point* p2)
 	return d;
 }
 
-double rand01()
-{
-	return (double)rand() / RAND_MAX;
-}
+
 
 //get_cost(i, j, inst)
 //compute or return matrix value if already there
