@@ -169,7 +169,7 @@ void plot_generator(Instance* inst) {
 		system("gnuplot -persistent gp_points.gp");
 }
 
-void plot_generator2(Instance* inst, int n_edges) {
+void plot_generator_partial(Instance* inst, int n_edges) {
 	FILE* out_lines;
 	FILE* out_points;
 	out_lines = fopen("../../Traveling-Salesman-Optimization/data/data_lines.dat", "w");
@@ -180,21 +180,20 @@ void plot_generator2(Instance* inst, int n_edges) {
 		fclose(out_points);
 		print_error("Error in opening output data file");
 	}
-
+	//print points
 	for (int i = 0; i < inst->nnodes - 1; i++) {
 		fprintf(out_points, "%f %f \"%d\"\n", inst->points[i].x, inst->points[i].y, i);
-		if (i < n_edges)
-		{
-			fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[i]].x, inst->points[inst->bestsol[i]].y);
-			fprintf(out_lines, "%f %f\n\n\n", inst->points[inst->bestsol[i + 1]].x, inst->points[inst->bestsol[i + 1]].y);
-		}
 	}
 	fprintf(out_points, "%f %f \"%d\"\n", inst->points[inst->nnodes - 1].x, inst->points[inst->nnodes - 1].y, inst->nnodes - 1);
-	if (n_edges == inst->nnodes)
+	
+	//print lines
+	for (int i = 0; i < n_edges; i++)
 	{
-		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[inst->nnodes - 1]].x, inst->points[inst->bestsol[inst->nnodes - 1]].y);
-		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[inst->nnodes]].x, inst->points[inst->bestsol[inst->nnodes]].y);
+		fprintf(out_lines, "%f %f\n", inst->points[inst->bestsol[i]].x, inst->points[inst->bestsol[i]].y);
+		fprintf(out_lines, "%f %f\n\n\n", inst->points[inst->bestsol[i + 1]].x, inst->points[inst->bestsol[i + 1]].y);
+		printf("\n%d: plotting line from %d to %d", i, inst->bestsol[i], inst->bestsol[i + 1]);
 	}
+	
 	fclose(out_lines);
 	fclose(out_points);
 

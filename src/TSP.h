@@ -55,6 +55,6 @@ Point* generate_random_points_range(int, double, double);
 void free_instance(Instance*);
 double distance(Point*, Point*);
 void plot_generator(Instance*);
-void plot_generator2(Instance* inst, int n_edges);
+void plot_generator_partial(Instance* inst, int n_edges);
 
 #endif

@@ -145,7 +145,8 @@ void extra_mileage_det(Instance* inst, em_start start)
     }
     swap(inst->bestsol, n_starting, n);
     //untill all nodes are added
-    while (current_nodes < n)
+    plot_generator_partial(inst, n_starting);
+   // while (current_nodes < n)
     {
         double extra_cost ;
         double min_extra_cost = INF_DOUBLE;
@@ -179,6 +180,7 @@ void extra_mileage_det(Instance* inst, em_start start)
             printf("%d ", inst->bestsol[i]);
         printf("\n");
     }
+    plot_generator_partial(inst, n_starting + 1);
 }
 
 void extra_mileage_grasp2(Instance* inst, em_start start, double p)
