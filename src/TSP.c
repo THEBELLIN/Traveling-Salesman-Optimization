@@ -201,8 +201,6 @@ void plot_generator_partial(Instance* inst, int n_edges) {
 	system("gnuplot -persistent gp_points_and_lines.gp");
 }
 
-
-
 void free_instance(Instance* inst)
 {
 	free(inst->bestsol);

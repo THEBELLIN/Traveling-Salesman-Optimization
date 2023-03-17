@@ -3,7 +3,9 @@
 #include "heuristics.h"
 #include <assert.h>
 
+
 //returns the convex hull of points
+//SORTS THE POINTS AND CHANGES INDEXES
 Point* convex_hull(Point* p, int len, int* hsize) {
     if (len == 0) {
         *hsize = 0;
@@ -128,6 +130,7 @@ void extra_mileage_det(Instance* inst, em_start start)
     {
         //Point* conv = convex_hull(inst, &n_starting);
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
+        initialize_cost(inst);
         starting_points = points_to_indexes(inst, conv, n_starting);
     }
     else
@@ -144,9 +147,9 @@ void extra_mileage_det(Instance* inst, em_start start)
         swap(inst->bestsol, i, starting_points[i]);
     }
     swap(inst->bestsol, n_starting, n);
+
     //untill all nodes are added
-    plot_generator_partial(inst, n_starting);
-   // while (current_nodes < n)
+    while (current_nodes < n)
     {
         double extra_cost ;
         double min_extra_cost = INF_DOUBLE;
@@ -161,9 +164,13 @@ void extra_mileage_det(Instance* inst, em_start start)
             //for all points not already considered
             for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->bestsol[j]
             {
-                extra_cost = - COST(e.from, e.to) + COST(e.from, inst->bestsol[j]) + COST(inst->bestsol[j], e.to);
+                //printf("\nconsidering edge %d -> %d against point %d", e.from, e.to, inst->bestsol[j]);
+                extra_cost = -(COST(e.from, e.to)) + COST(e.from, inst->bestsol[j]) + COST(inst->bestsol[j], e.to);
                 if (extra_cost < min_extra_cost)
                 {
+                    /*printf("removed cost: %f", COST(e.from, e.to));
+                    printf("added costs cost: %f, %f", COST(e.from, inst->bestsol[j]), COST(inst->bestsol[j], e.to));
+                    printf("\nmin extra cost found: %f, previous was %f. This is point %d between %d and %d", extra_cost, min_extra_cost, inst->bestsol[j], e.from, e.to);*/
                     min_extra_cost = extra_cost;
                     new_point_index = j;
                     place = i + 1;
@@ -173,14 +180,14 @@ void extra_mileage_det(Instance* inst, em_start start)
         current_nodes++;
         add_in_position(new_point_index, place, inst->bestsol, current_nodes+1);
         //DEBUG
-        for (int i = 0; i < current_nodes + 1; i++)
+        /*for (int i = 0; i < current_nodes + 1; i++)
             printf("%d ", inst->bestsol[i]);
         printf(" || ");
         for (int i = current_nodes+1; i < n + 1; i++)
             printf("%d ", inst->bestsol[i]);
-        printf("\n");
+        printf("\n");*/
     }
-    plot_generator_partial(inst, n_starting + 1);
+    plot_generator_partial(inst, inst->nnodes);
 }
 
 void extra_mileage_grasp2(Instance* inst, em_start start, double p)
@@ -223,6 +230,7 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     else if (start == CONV_HULL)
     {
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
+        initialize_cost(inst);
         starting_points = points_to_indexes(inst, conv, n_starting);
     }
     else
@@ -332,6 +340,7 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     else if (start == CONV_HULL)
     {
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
+        initialize_cost(inst);
         starting_points = points_to_indexes(inst, conv, n_starting);
     }
     else
@@ -544,9 +553,6 @@ void nearest_neighbor_grasp(Instance* inst, int start, double p2) {
     inst->bestsol = current;
     inst->bestcost = costo;
 }
-
-
-
 
 // grasp NN given a starting point and the 2 probabities
 void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {

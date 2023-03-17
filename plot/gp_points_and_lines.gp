@@ -1,3 +1,5 @@
+set terminal wxt size 1920, 1080
+set term wxt font ",4"
 set style line 1 \
 linecolor rgb '#FFaa00' \
 linetype 1 linewidth 2 \
