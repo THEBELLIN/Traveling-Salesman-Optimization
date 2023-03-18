@@ -528,31 +528,34 @@ void nearest_neighbor_grasp(Instance* inst, int start, double p2) {
             }
 
         }
+        double c = rand01();
+        printf("random : %f\n", c);
+        if (c < p2 && min2 < INF_DOUBLE) {
+            printf("sono nel caso dove prendo secondo migliore\n");
+            costo = costo + min2;
+            swap(current, len, best_pos2);
+            min = INF_DOUBLE;
+            min2 = INF_DOUBLE;
+            last = current[len];
+            len++;
+        }
+        else
+        {
+            printf("sono nel caso dove prendo primo migliore\n");
+            costo = costo + min;
+            swap(current, len, best_pos);
+            min = INF_DOUBLE;
+            min2 = INF_DOUBLE;
+            last = current[len];
+            len++;
+        }
     }
-    double c = rand01();
-    printf("random : %f\n", c);
-    if (c < p2 && min2 < INF_DOUBLE) {
-        printf("sono nel caso dove prendo secondo migliore\n");
-        costo = costo + min2;
-        swap(current, len, best_pos2);
-        min = INF_DOUBLE;
-        min2 = INF_DOUBLE;
-        last = current[len];
-        len++;
-    }
-    else if (c > +p2) {
-        printf("sono nel caso dove prendo primo migliore\n");
-        costo = costo + min;
-        swap(current, len, best_pos);
-        min = INF_DOUBLE;
-        min2 = INF_DOUBLE;
-        last = current[len];
-        len++;
-    }
+
     costo += inst->cost[start * n + last];
     inst->bestsol = current;
     inst->bestcost = costo;
 }
+
 
 // grasp NN given a starting point and the 2 probabities
 void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
@@ -646,4 +649,117 @@ void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
     costo += inst->cost[start * n + last];
     inst->bestsol = current;
     inst->bestcost = costo;
+}
+
+
+
+// grasp where every 20 iteration it makes a random pick
+void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
+    if (start < 0)
+        print_error("Invalid choice of the start node");
+    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+    int n = inst->nnodes;
+    int len = 0;
+    double costo = 0;
+    int last = start;
+    double min = INF_DOUBLE;
+    double min2 = INF_DOUBLE;
+    int best_pos = -1;
+    int best_pos2 = -1;
+    initialize_cost(inst);
+    //initialize current
+    for (int i = 0; i < inst->nnodes; i++) {
+        current[i] = i;
+    }
+    current[n] = start;
+    swap(current, 0, start);
+    len++;
+    for (int i = 1; i < inst->nnodes; i++) {
+        if (i % 20 == 0) {
+            int d = ((double)rand() / RAND_MAX) * (inst->nnodes - 1 - len) + len;// gives me a number between len and n-1
+            printf("sono nel caso dove prendo una scelta random\n");
+            costo = costo + inst->cost[last * n + current[d]];
+            swap(current, len, d);
+            last = current[len];
+            len++;
+        }
+        else
+        {
+            for (int j = len; j < inst->nnodes; j++) {
+
+                if (inst->cost[last * n + current[j]] < min2) {
+
+                    if (inst->cost[last * n + current[j]] < min) {
+                        min2 = min;
+                        best_pos2 = best_pos;
+                        min = inst->cost[last * n + current[j]];
+                        best_pos = j;
+                    }
+                    else {
+                        min2 = inst->cost[last * n + current[j]];
+                        best_pos2 = j;
+                    }
+                }
+
+            }
+            double c = rand01();
+            printf("random : %f\n", c);
+            if (c < p2 && min2 < INF_DOUBLE) {
+                printf("sono nel caso dove prendo secondo migliore\n");
+                costo = costo + min2;
+                swap(current, len, best_pos2);
+                min = INF_DOUBLE;
+                min2 = INF_DOUBLE;
+                last = current[len];
+                len++;
+            }
+            else
+            {
+                printf("sono nel caso dove prendo primo migliore\n");
+                costo = costo + min;
+                swap(current, len, best_pos);
+                min = INF_DOUBLE;
+                min2 = INF_DOUBLE;
+                last = current[len];
+                len++;
+            }
+        }
+    }
+
+    costo += inst->cost[start * n + last];
+    inst->bestsol = current;
+    inst->bestcost = costo;
+}
+
+
+void two_opt_move(Instance* inst) {
+    // initialize best solution with GRASP 0.5 and random pick 1/20
+    nearest_neighbor_grasp_random(inst, 0, 0.5);
+    int better_cost = 1;// variable to check if the cost has improve
+    int best_arc = -1;
+    int best_arc2 = -1;
+    double best_delta = 0;
+    int n = inst->nnodes;
+
+    // loop until no more improvement is possible
+    while (better_cost > 0) {
+        better_cost = 0;
+        for (int i = 0; i < inst->nnodes - 2; i++) {
+            for (int j = i + 2; j < inst->nnodes; j++) {
+                // calculate the delta cost of swapping edges (i,i+1) and (j,j+1) for (i,j) and (i+1,j+1)
+                double delta = inst->cost[inst->bestsol[i] * n + inst->bestsol[j]] + inst->cost[inst->bestsol[i + 1] * n + inst->bestsol[j + 1]] - inst->cost[inst->bestsol[i] * n + inst->bestsol[i + 1]] - inst->cost[inst->bestsol[j] * n + inst->bestsol[j + 1]];
+                if (delta < best_delta) {
+                    best_delta = delta;
+                    best_arc = i;
+                    best_arc2 = j;
+                    better_cost = 1;
+                }
+            }
+        }
+        if (better_cost > 0) {
+            invert_nodes(inst->bestsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
+            inst->bestcost += best_delta;
+            best_delta = 0; // reset best_delta to a large value for the next iteration
+        }
+    }
 }

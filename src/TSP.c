@@ -215,6 +215,30 @@ double distance(Point* p1, Point* p2)
 	return d;
 }
 
+void print_points_file(Point* points, int n, FILE* out)
+{
+	fprintf(out, "DIMENSION : %d\n", n);
+	for (int i = 0; i < n; i++)
+		fprintf(out, "%d %f %f \n", i + 1, points[i].x, points[i].y);
+}
+
+Instance* generate_test_bed(int seed, int n_instances, int n_points) {
+	FILE* out = fopen("../../Traveling-Salesman-Optimization/data/test_bed.txt", "w");
+	if (out == NULL)
+		print_error("Error in opening output data file");
+	Instance* inst_set = CALLOC(n_instances, Instance);
+	srand(seed);
+	for (int i = 0; i < n_instances; i++) {
+		inst_set[i].randomseed = seed;
+		inst_set[i].nnodes = n_points;
+		inst_set[i].points = generate_random_points(n_points);
+		strcpy(inst_set[i].inputfile, "test_bed.txt");
+		print_points_file(inst_set[i].points, n_points, out);
+	}
+	fprintf(out, "EOF");
+	fclose(out);
+	return inst_set;
+}
 
 
 //get_cost(i, j, inst)

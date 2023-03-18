@@ -21,5 +21,6 @@ void initialize_cost(Instance*);
 bool is_equal_double(double, double);
 bool is_equal_points(Point*, Point*);
 double rand01();
+void invert_nodes(int*, int, int);
 
 #endif

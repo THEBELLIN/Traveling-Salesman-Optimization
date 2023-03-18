@@ -42,4 +42,6 @@ void nearest_neighbor_grasp(Instance*, int, double);
 int nearest_neighbor_allstart(Instance*);
 void nearest_neighbor(Instance*, int);
 Point* convex_hull(Point*, int, int*);
+void nearest_neighbor_grasp_random(Instance*, int, double);
+void two_opt_move(Instance*);
 #endif

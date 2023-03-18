@@ -60,3 +60,12 @@ double rand01()
 {
     return (double)rand() / RAND_MAX;
 }
+
+// reverse the order of a segment of the tour
+void invert_nodes(int* sol, int start, int end) {
+    while (start < end) {
+        swap(sol, start, end);
+        start++;
+        end--;
+    }
+}
