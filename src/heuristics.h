@@ -9,7 +9,7 @@
 #define GRASP3(p, pp) {.opt=GRASP_3, .p1=p, .p2=pp};
 
 //option to select the method for extra mileage algorithm  start
-typedef enum
+typedef enum 
 {
 	RAND,		//select 2 nodes at random for the strating set
 	MAX_DIST,	//select the 2 most distant nodes for the starting set

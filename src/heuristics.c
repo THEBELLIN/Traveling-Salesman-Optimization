@@ -7,7 +7,7 @@
 //returns the convex hull of points
 //SORTS THE POINTS AND CHANGES INDEXES
 Point* convex_hull(Point* p, int len, int* hsize) {
-    if (len == 0) {
+    if (len == 0 || p == NULL) {
         *hsize = 0;
         return NULL;
     }
@@ -132,6 +132,7 @@ void extra_mileage_det(Instance* inst, em_start start)
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         initialize_cost(inst);
         starting_points = points_to_indexes(inst, conv, n_starting);
+        free(conv);
     }
     else
         print_error("Wrong starting flag in extra mileage");
@@ -233,6 +234,7 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         initialize_cost(inst);
         starting_points = points_to_indexes(inst, conv, n_starting);
+        free(conv);
     }
     else
         print_error("Wrong starting flag in extra mileage");
@@ -311,7 +313,7 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     //select starting indexes
     int n = inst->nnodes;
     int* starting_points = NULL;
-    int n_starting;
+    int n_starting = 0;
 
     if (start == RAND)
     {
@@ -344,6 +346,7 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         initialize_cost(inst);
         starting_points = points_to_indexes(inst, conv, n_starting);
+        free(conv);
     }
     else
         print_error("Wrong starting flag in extra mileage");
@@ -352,7 +355,10 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     int current_nodes = n_starting;
     for (int i = 0; i < n; i++)
         inst->bestsol[i] = i;
-    inst->bestsol[n] = starting_points[0];
+    if (starting_points) //!=NULL
+        inst->bestsol[n] = *starting_points;
+    else
+        print_error("%s: Starting points is NULL pointer", __LINE__);
     //set current tour
     for (int i = 0; i < n_starting; i++)
     {
