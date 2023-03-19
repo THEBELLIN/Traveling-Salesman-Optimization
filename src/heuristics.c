@@ -187,6 +187,7 @@ void extra_mileage_det(Instance* inst, em_start start)
             printf("%d ", inst->bestsol[i]);
         printf("\n");*/
     }
+    free(starting_points);
     plot_generator_partial(inst, inst->nnodes);
 }
 
@@ -298,6 +299,7 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
             printf("%d ", inst->bestsol[i]);
         printf("\n");*/
     }
+    free(starting_points);
 }
 
 void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
@@ -425,6 +427,7 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
             printf("%d ", inst->bestsol[i]);
         printf("\n");*/
     }
+    free(starting_points);
 }
 
 
