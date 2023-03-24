@@ -436,7 +436,6 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     free(starting_points);
 }
 
-
 //greedy NN given a starting point O(n^2)
 void nearest_neighbor(Instance* inst, int start) {
     if (start < 0)
@@ -565,7 +564,6 @@ void nearest_neighbor_grasp(Instance* inst, int start, double p2) {
     inst->bestcost = costo;
 }
 
-
 // grasp NN given a starting point and the 2 probabities
 void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
     if (start < 0)
@@ -660,8 +658,6 @@ void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
     inst->bestcost = costo;
 }
 
-
-
 // grasp where every 20 iteration it makes a random pick
 void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
     if (start < 0)
@@ -740,24 +736,27 @@ void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
     inst->bestcost = costo;
 }
 
-
 void two_opt_move(Instance* inst) {
     // initialize best solution with GRASP 0.5 and random pick 1/20
     nearest_neighbor_grasp_random(inst, 0, 0.5);
-    int better_cost = 1;// variable to check if the cost has improve
+    int better_cost = 1;//bool variable to check if the cost has improved
     int best_arc = -1;
     int best_arc2 = -1;
     double best_delta = 0;
     int n = inst->nnodes;
 
     // loop until no more improvement is possible
-    while (better_cost > 0) {
+    while (better_cost > 0) 
+    {
         better_cost = 0;
-        for (int i = 0; i < inst->nnodes - 2; i++) {
-            for (int j = i + 2; j < inst->nnodes; j++) {
+        for (int i = 0; i < n - 2; i++) 
+        {
+            for (int j = i + 2; j < n; j++) 
+            {
                 // calculate the delta cost of swapping edges (i,i+1) and (j,j+1) for (i,j) and (i+1,j+1)
-                double delta = inst->cost[inst->bestsol[i] * n + inst->bestsol[j]] + inst->cost[inst->bestsol[i + 1] * n + inst->bestsol[j + 1]] - inst->cost[inst->bestsol[i] * n + inst->bestsol[i + 1]] - inst->cost[inst->bestsol[j] * n + inst->bestsol[j + 1]];
-                if (delta < best_delta) {
+                double delta = COST(inst->bestsol[i], inst->bestsol[j]) + COST(inst->bestsol[i + 1], inst->bestsol[j + 1]) - COST(inst->bestsol[i], inst->bestsol[i + 1]) - COST(inst->bestsol[j], inst->bestsol[j + 1]);
+                if (delta < best_delta) 
+                {
                     best_delta = delta;
                     best_arc = i;
                     best_arc2 = j;
@@ -765,7 +764,8 @@ void two_opt_move(Instance* inst) {
                 }
             }
         }
-        if (better_cost > 0) {
+        if (better_cost) 
+        {
             invert_nodes(inst->bestsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
             inst->bestcost += best_delta;
             best_delta = 0; // reset best_delta to a large value for the next iteration

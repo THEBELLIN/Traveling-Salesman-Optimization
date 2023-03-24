@@ -8,6 +8,7 @@ void initialize_instance(Instance* inst)
 	inst->bestsol = NULL;
 	inst->cost = NULL;
 	inst->randomseed = 1337;
+	inst->tstart = 
 }
 
 void parse_args(Instance* inst, int argc, char** argv)
@@ -211,7 +212,7 @@ void free_instance(Instance* inst)
 double distance(Point* p1, Point* p2)
 {
 	double d = 0;
-	d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));
+	d = sqrt((p1->x - p2->x) * (p1->x - p2->x) + (p1->y - p2->y) * (p1->y - p2->y));
 	return d;
 }
 

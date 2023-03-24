@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 //===========constants=================
 #define XSMALL 1e-5
@@ -14,6 +15,17 @@
 #define INF_DOUBLE 1e50
 //#define VERBOSE 1			//  0, 10, 20, 30, 40, 50
 
+//==================enums==================
+typedef enum
+{
+	NN,
+	NN_GRASP2,
+	NN_GRASP3,
+	EM,
+	EM_GRASP2,
+	EM_GRASP3,
+
+}solver_id;
 //===============structs===============
 typedef struct
 {
@@ -32,15 +44,17 @@ typedef struct
 	Point* points;
 	int nnodes;
 	double* cost;
+	solver_id id;
+	double p1, p2;
 
 	char inputfile[1000];
 	char outputfile[1000];
 	int randomseed;
 
 	double tstart;
-	double bestcost, tbest, bestlb;
-	int* bestsol;
-	int verbose;			//  0, 10, 20, 30, 40, 50
+	double bestcost, tbest, bestlb;		// incumbent
+	int* bestsol;						// incumbent
+	int verbose;						//  0, 10, 20, 30, 40, 50
 
 }Instance;
 
