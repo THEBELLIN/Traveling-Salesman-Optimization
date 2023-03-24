@@ -736,7 +736,8 @@ void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
     inst->bestcost = costo;
 }
 
-void two_opt_move(Instance* inst) {
+
+void two_opt_move(Instance* inst, int time_limit) {
     // initialize best solution with GRASP 0.5 and random pick 1/20
     nearest_neighbor_grasp_random(inst, 0, 0.5);
     int better_cost = 1;//bool variable to check if the cost has improved
@@ -744,10 +745,10 @@ void two_opt_move(Instance* inst) {
     int best_arc2 = -1;
     double best_delta = 0;
     int n = inst->nnodes;
+    int start_time = time(NULL);
 
-    // loop until no more improvement is possible
-    while (better_cost > 0) 
-    {
+    // loop until no more improvement is possible or time limit is reached
+    while (better_cost > 0 && time(NULL) - start_time < time_limit) {
         better_cost = 0;
         for (int i = 0; i < n - 2; i++) 
         {
@@ -768,7 +769,7 @@ void two_opt_move(Instance* inst) {
         {
             invert_nodes(inst->bestsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
             inst->bestcost += best_delta;
-            best_delta = 0; // reset best_delta to a large value for the next iteration
+            best_delta = 0;
         }
     }
 }
