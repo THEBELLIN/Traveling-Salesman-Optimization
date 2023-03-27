@@ -77,3 +77,12 @@ double get_elapsed_time(timeval start, timeval end)
     double elapsed = seconds + microseconds * 1e-6;
     return elapsed;
 }
+
+//copies elements from array a to array b, assumed of equale length len
+void copy_array(int* a, int* b, int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        b[i] = a[i];
+    }
+}

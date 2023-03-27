@@ -46,8 +46,10 @@ typedef struct
 	int randomseed;
 
 	double tstart;
-	double bestcost, tbest, bestlb;		// incumbent
-	int* bestsol;						// incumbent
+	double bestcost, tbest, bestlb;		// incumbent solution
+	int* bestsol;						// incumbent solution
+	double currcost;					// current solution	
+	int* currsol;						// current solution
 	int verbose;						//  0, 10, 20, 30, 40, 50
 
 	int* tabu;
@@ -65,9 +67,10 @@ Point* generate_random_points(int);
 Point* generate_random_points_range(int, double, double);
 void free_instance(Instance*);
 double distance(Point*, Point*);
-void plot_generator(Instance*);
-void plot_generator_partial(Instance* inst, int n_edges);
+//void plot_generator(Instance*);
+void plot_generator(Instance* inst, int n_edges);
 void print_points_file(Point*, int, FILE*);
 Instance* generate_test_bed(int, int, int);
+double get_cost(Instance*, int*);
 
 #endif

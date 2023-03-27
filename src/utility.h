@@ -37,5 +37,6 @@ bool is_equal_points(Point*, Point*);
 double rand01();
 void invert_nodes(int*, int, int);
 double get_elapsed_time(timeval, timeval);
+void copy_array(int*, int*, int);
 
 #endif

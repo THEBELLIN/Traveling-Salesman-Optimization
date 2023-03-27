@@ -4,9 +4,17 @@
 #include "TSP.h"
 #include "utility.h"
 
+//==============SHORTCUTS=================
 #define NORMAL {.opt=NORM, .p1=1, .p2=0};
 #define GRASP2(p) {.opt=GRASP_2, .p1=p, .p2=0};
 #define GRASP3(p, pp) {.opt=GRASP_3, .p1=p, .p2=pp};
+
+//=================ENUMS===========================
+typedef enum
+{
+	NN, //nearest neighbor
+	EM, //extra mileage
+}starting_alg;
 
 //option to select the method for extra mileage algorithm  start
 typedef enum 
@@ -24,16 +32,26 @@ typedef enum
 	GRASP_3		//use the 1st option with probability p1, the 2nd with p2, 3rd with 1-p1-p2
 }em_opt;
 
+//=================STRUCTS============================
 typedef struct
 {
+	starting_alg alg;
+	em_options em_opts;
+	int timelimit;
+}solve_options;
+
+typedef struct
+{
+	em_start start;
 	em_opt opt;
 	double p1;
 	double p2;
 }em_options;
 
+//====================FUNCTIONS=======================
 int* points_to_indexes(Instance*, Point*, int);
 void add_in_position(int, int, int*, int);
-void extra_mileage(Instance*, int, em_options*);
+void extra_mileage(Instance*, em_options*);
 void extra_mileage_det(Instance*, int);
 void extra_mileage_grasp2(Instance*, em_start, double);
 void extra_mileage_grasp3(Instance*, em_start, double, double);
@@ -44,4 +62,5 @@ void nearest_neighbor(Instance*, int);
 Point* convex_hull(Point*, int, int*);
 void nearest_neighbor_grasp_random(Instance*, int, double);
 void next_bestsol(Instance*, int);
+void solve(Instance*, solve_options*);
 #endif

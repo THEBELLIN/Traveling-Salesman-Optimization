@@ -9,10 +9,12 @@ void initialize_instance(Instance* inst)
 	inst->cost = NULL;
 	inst->randomseed = 1337;
 	inst->tstart = time(NULL);
+	inst->tabu_tenure = -1;
 }
 
 void parse_args(Instance* inst, int argc, char** argv)
 {
+	//TODO check all fundamental arguments are filled
 	if (argc < 2)
 		print_error("Not enough arguments in the command line while launching the program");
 	int arg = 2;
@@ -31,6 +33,11 @@ void parse_args(Instance* inst, int argc, char** argv)
 		if (strncmp(argv[i], "-seed", 5) == 0) //verbose level
 		{
 			inst->randomseed = atoi(argv[++i]);
+			continue;
+		}
+		if (strncmp(argv[i], "-tenure", 7) == 0) //tabu tenure level
+		{
+			inst->tabu_tenure = atoi(argv[++i]);
 			continue;
 		}
 	}
@@ -69,6 +76,7 @@ void parse_TSPLIB(Instance* inst)
 	inst->points = MALLOC(inst->nnodes, Point);
 	inst->cost = MALLOC(inst->nnodes * inst->nnodes, double);
 	inst->bestsol = MALLOC(inst->nnodes + 1, int);
+	inst->currsol = MALLOC(inst->nnodes + 1, int);
 	inst->tabu = MALLOC(inst->nnodes, int);
 
 	//initialize tbau list
@@ -141,7 +149,7 @@ Point* generate_random_points_range(int n, double range_min, double range_max)
 }
 
 // creates a graph of the cycle on gnuplot
-void plot_generator(Instance* inst) {
+/*void plot_generator(Instance* inst) {
 	FILE* out_lines;
 	FILE* out_points;
 	out_lines = fopen("../../Traveling-Salesman-Optimization/data/data_lines.dat", "w");
@@ -175,9 +183,9 @@ void plot_generator(Instance* inst) {
 		system("gnuplot -persistent gp_lines.gp");
 	else
 		system("gnuplot -persistent gp_points.gp");
-}
+}*/
 
-void plot_generator_partial(Instance* inst, int n_edges) {
+void plot_generator(Instance* inst, int n_edges) {
 	FILE* out_lines;
 	FILE* out_points;
 	out_lines = fopen("../../Traveling-Salesman-Optimization/data/data_lines.dat", "w");
@@ -215,6 +223,7 @@ void free_instance(Instance* inst)
 	free(inst->cost);
 	free(inst->points);
 	free(inst->tabu);
+	free(inst->currsol);
 }
 
 double distance(Point* p1, Point* p2)
@@ -249,6 +258,12 @@ Instance* generate_test_bed(int seed, int n_instances, int n_points) {
 	return inst_set;
 }
 
-
-//get_cost(i, j, inst)
-//compute or return matrix value if already there
+double get_cost(Instance* inst, int* sol)
+{
+	double cost = 0;
+	for (int i = 0; i < inst->nnodes; i++)
+	{
+		cost += distance(&inst->points[sol[i]], &inst->points[sol[i + 1]]);
+	}
+	return cost;
+}

@@ -77,16 +77,24 @@ int* points_to_indexes(Instance* inst, Point* p, int n)
     return indexes;
 }
 
-void extra_mileage(Instance* inst, em_start start, em_options* options)
+void extra_mileage(Instance* inst,  em_options* options)
 {
+    //check for call parameters
     if (options->opt == NORM)
-        extra_mileage_det(inst, start);
+        extra_mileage_det(inst, options->start);
     else if (options->opt == GRASP_2)
-        extra_mileage_grasp2(inst, start, options->p1);
+        extra_mileage_grasp2(inst, options->start, options->p1);
     else if (options->opt==GRASP_3)
-        extra_mileage_grasp3(inst, start, options->p1, options->p2);
+        extra_mileage_grasp3(inst, options->start, options->p1, options->p2);
     else
         print_error("Wrong parameter for extra mileage algorithm");
+
+    //set current solution to the best (and only) found 
+    copy_array(inst->bestsol, inst->currsol, inst->nnodes + 1);
+
+    //set current and best solution to the best (and only) found
+    inst->bestcost = get_cost(inst, inst->bestsol);
+    inst->currcost = inst->bestcost;
 }
 
 void extra_mileage_det(Instance* inst, em_start start)
@@ -737,43 +745,70 @@ void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
 }
 
 
-void next_bestsol(Instance* inst, int time_limit) {
+void next_bestsol(Instance* inst, int it) {
     //assume we have already found a solution
     //this funxtions returns the next best solution in the neighborhood that is not currsol and satisfies tabu list
-    
-    //===============2-OPT=============
-    int better_cost = 0;    //bool variable to check if the cost has improved
+
+    //===============2-OPT CHECK=============
     int best_arc = -1;
     int best_arc2 = -1;
-    double best_delta = 0;
+    double best_delta = INF_DOUBLE;
     int n = inst->nnodes;
-    int start_time = time(NULL);
 
+    //check for tabu tenure validity
+    if (inst->tabu_tenure < 0)
+        print_error("%s, Impossible value of tabu tenure", __LINE__);
+
+    //check for the best 2-opt move possible
     for (int i = 0; i < n - 2; i++) 
     {
+        //check for tabu nodes
+        if (it - inst->tabu[inst->bestsol[i]] < inst->tabu_tenure || it - inst->tabu[inst->bestsol[i + 1]] < inst->tabu_tenure)
+            continue;
         for (int j = i + 2; j < n; j++) 
         {
-            // calculate the delta cost of swapping edges (i,i+1) and (j,j+1) for (i,j) and (i+1,j+1)
+            //check for tabu nodes
+            if (it - inst->tabu[inst->bestsol[j]] < inst->tabu_tenure || it - inst->tabu[inst->bestsol[j + 1]] < inst->tabu_tenure)
+                continue;
+            // calculate the delta cost of swapping edges bestsol[(i,i+1)] and (j,j+1) for (i,j) and (i+1,j+1)
             double delta = COST(inst->bestsol[i], inst->bestsol[j]) + COST(inst->bestsol[i + 1], inst->bestsol[j + 1]) - COST(inst->bestsol[i], inst->bestsol[i + 1]) - COST(inst->bestsol[j], inst->bestsol[j + 1]);
             if (delta < best_delta) 
             {
                 best_delta = delta;
                 best_arc = i;
                 best_arc2 = j;
-                better_cost = 1;
             }
         }
     }
-    if (better_cost) //2-opt move found
+    invert_nodes(inst->currsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
+    inst->currcost += best_delta;
+    if (inst->currcost < inst->bestcost) //if new solution is best found, save it
     {
-        invert_nodes(inst->bestsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
-        inst->bestcost += best_delta;
-        best_delta = 0;
-        return;
+        copy_array(inst->currsol, inst->bestsol, inst->nnodes + 1);
+        inst->bestcost = inst->currcost;
     }
-    
-    //=================TABU SEARCH=====================
+}
 
-    //TODO
+void solve(Instance* inst, solve_options* options)
+{
+    if (options->alg == EM)
+    {
+        extra_mileage(inst, &options->em_opts);
+    }
+    else if (options->alg == NN)
+    {
+        nearest_neighbor(inst, 0); //TODO fix this
+    }
+    else
+        print_error("%s, Error in setting algorithm options for solving", __LINE__);
 
+    //iterate untill timelimit is exceeded
+    int it = 0;
+    while (time(NULL) - inst->tstart < options->timelimit)
+    {
+        next_bestsol(inst, it);
+        it++;
+    }
+    //plot best instance found
+    plot_generator(inst, inst->nnodes);
 }
