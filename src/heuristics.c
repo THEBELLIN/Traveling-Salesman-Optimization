@@ -780,10 +780,21 @@ void next_bestsol(Instance* inst, int it) {
             }
         }
     }
+    if (best_delta == INF_DOUBLE)
+        print_error("%s, Error in finding another solution", __LINE__);
+
+    //put all 4 nodes swapped in tabu list
+    inst->tabu[inst->currsol[best_arc]] = it;
+    inst->tabu[inst->currsol[best_arc + 1]] = it;
+    inst->tabu[inst->currsol[best_arc2]] = it;
+    inst->tabu[inst->currsol[best_arc2 + 1]] = it;
+
     invert_nodes(inst->currsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
     inst->currcost += best_delta;
     if (inst->currcost < inst->bestcost) //if new solution is best found, save it
     {
+        if (inst->verbose > 0)
+            printf("New best solution found of cost: %f", inst->bestcost);
         copy_array(inst->currsol, inst->bestsol, inst->nnodes + 1);
         inst->bestcost = inst->currcost;
     }
