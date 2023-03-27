@@ -3,10 +3,18 @@
 
 #include "TSP.h"
 
+//================shortcuts=============================
 #define MALLOC(n, type) ((type *) malloc (n * sizeof(type)))
 #define CALLOC(n, type) ((type *) calloc (n, sizeof(type)))
 #define REALLOC(ptr, n, type) (realloc(ptr, n * sizeof(type)))
 #define COST(i1, i2) (inst->cost[i1 * inst->nnodes + i2])
+
+//====================constants=========================
+#define XSMALL 1e-5
+#define EPSILON 1e-9
+#define INF_DOUBLE 1e50
+#define INF_INT 1e9
+
 //=================structs==============================
 typedef struct  
 {

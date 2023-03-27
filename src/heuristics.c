@@ -737,39 +737,43 @@ void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
 }
 
 
-void two_opt_move(Instance* inst, int time_limit) {
-    // initialize best solution with GRASP 0.5 and random pick 1/20
-    nearest_neighbor_grasp_random(inst, 0, 0.5);
-    int better_cost = 1;//bool variable to check if the cost has improved
+void next_bestsol(Instance* inst, int time_limit) {
+    //assume we have already found a solution
+    //this funxtions returns the next best solution in the neighborhood that is not currsol and satisfies tabu list
+    
+    //===============2-OPT=============
+    int better_cost = 0;    //bool variable to check if the cost has improved
     int best_arc = -1;
     int best_arc2 = -1;
     double best_delta = 0;
     int n = inst->nnodes;
     int start_time = time(NULL);
 
-    // loop until no more improvement is possible or time limit is reached
-    while (better_cost > 0 && time(NULL) - start_time < time_limit) {
-        better_cost = 0;
-        for (int i = 0; i < n - 2; i++) 
+    for (int i = 0; i < n - 2; i++) 
+    {
+        for (int j = i + 2; j < n; j++) 
         {
-            for (int j = i + 2; j < n; j++) 
+            // calculate the delta cost of swapping edges (i,i+1) and (j,j+1) for (i,j) and (i+1,j+1)
+            double delta = COST(inst->bestsol[i], inst->bestsol[j]) + COST(inst->bestsol[i + 1], inst->bestsol[j + 1]) - COST(inst->bestsol[i], inst->bestsol[i + 1]) - COST(inst->bestsol[j], inst->bestsol[j + 1]);
+            if (delta < best_delta) 
             {
-                // calculate the delta cost of swapping edges (i,i+1) and (j,j+1) for (i,j) and (i+1,j+1)
-                double delta = COST(inst->bestsol[i], inst->bestsol[j]) + COST(inst->bestsol[i + 1], inst->bestsol[j + 1]) - COST(inst->bestsol[i], inst->bestsol[i + 1]) - COST(inst->bestsol[j], inst->bestsol[j + 1]);
-                if (delta < best_delta) 
-                {
-                    best_delta = delta;
-                    best_arc = i;
-                    best_arc2 = j;
-                    better_cost = 1;
-                }
+                best_delta = delta;
+                best_arc = i;
+                best_arc2 = j;
+                better_cost = 1;
             }
         }
-        if (better_cost) 
-        {
-            invert_nodes(inst->bestsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
-            inst->bestcost += best_delta;
-            best_delta = 0;
-        }
     }
+    if (better_cost) //2-opt move found
+    {
+        invert_nodes(inst->bestsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
+        inst->bestcost += best_delta;
+        best_delta = 0;
+        return;
+    }
+    
+    //=================TABU SEARCH=====================
+
+    //TODO
+
 }

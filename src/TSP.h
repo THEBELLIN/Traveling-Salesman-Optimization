@@ -9,12 +9,6 @@
 #include <string.h>
 #include <time.h>
 
-//===========constants=================
-#define XSMALL 1e-5
-#define EPSILON 1e-9
-#define INF_DOUBLE 1e50
-//#define VERBOSE 1			//  0, 10, 20, 30, 40, 50
-
 //==================enums==================
 typedef enum
 {
@@ -55,6 +49,9 @@ typedef struct
 	double bestcost, tbest, bestlb;		// incumbent
 	int* bestsol;						// incumbent
 	int verbose;						//  0, 10, 20, 30, 40, 50
+
+	int* tabu;
+	int tabu_tenure;
 
 }Instance;
 

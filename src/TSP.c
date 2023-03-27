@@ -8,7 +8,7 @@ void initialize_instance(Instance* inst)
 	inst->bestsol = NULL;
 	inst->cost = NULL;
 	inst->randomseed = 1337;
-	inst->tstart = 
+	inst->tstart = time(NULL);
 }
 
 void parse_args(Instance* inst, int argc, char** argv)
@@ -66,9 +66,16 @@ void parse_TSPLIB(Instance* inst)
 	}
 
 	//allocate memory
-	inst->points = CALLOC(inst->nnodes, Point);
-	inst->cost = CALLOC(inst->nnodes * inst->nnodes, double);
-	inst->bestsol = CALLOC(inst->nnodes + 1, int);
+	inst->points = MALLOC(inst->nnodes, Point);
+	inst->cost = MALLOC(inst->nnodes * inst->nnodes, double);
+	inst->bestsol = MALLOC(inst->nnodes + 1, int);
+	inst->tabu = MALLOC(inst->nnodes, int);
+
+	//initialize tbau list
+	for (int i = 0; i < inst->nnodes; i++)
+	{
+		inst->tabu[i] = -INF_INT;
+	}
 
 	//reading coordinates
 	for (int i = 0; i < inst->nnodes; i++)
@@ -207,6 +214,7 @@ void free_instance(Instance* inst)
 	free(inst->bestsol);
 	free(inst->cost);
 	free(inst->points);
+	free(inst->tabu);
 }
 
 double distance(Point* p1, Point* p2)
