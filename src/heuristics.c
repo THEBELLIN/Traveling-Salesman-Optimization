@@ -197,7 +197,7 @@ void extra_mileage_det(Instance* inst, em_start start)
         printf("\n");*/
     }
     free(starting_points);
-    plot_generator_partial(inst, inst->nnodes);
+    //plot_generator(inst, inst->nnodes);
 }
 
 void extra_mileage_grasp2(Instance* inst, em_start start, double p)
@@ -804,7 +804,7 @@ void solve(Instance* inst, solve_options* options)
 {
     if (options->alg == EM)
     {
-        extra_mileage(inst, &options->em_opts);
+        extra_mileage(inst, options->em_opts);
     }
     else if (options->alg == NN)
     {
@@ -813,6 +813,7 @@ void solve(Instance* inst, solve_options* options)
     else
         print_error("%s, Error in setting algorithm options for solving", __LINE__);
 
+    printf("starting to iterate");
     //iterate untill timelimit is exceeded
     int it = 0;
     while (time(NULL) - inst->tstart < options->timelimit)
@@ -823,3 +824,8 @@ void solve(Instance* inst, solve_options* options)
     //plot best instance found
     plot_generator(inst, inst->nnodes);
 }
+
+
+//add check for feasibility and if debug > tot print cost in update incumbent
+//plot cost of incumbent during solving (or cost in console but better to plot)
+//tabulate formatted output

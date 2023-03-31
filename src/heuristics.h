@@ -10,12 +10,6 @@
 #define GRASP3(p, pp) {.opt=GRASP_3, .p1=p, .p2=pp};
 
 //=================ENUMS===========================
-typedef enum
-{
-	NN, //nearest neighbor
-	EM, //extra mileage
-}starting_alg;
-
 //option to select the method for extra mileage algorithm  start
 typedef enum 
 {
@@ -35,18 +29,18 @@ typedef enum
 //=================STRUCTS============================
 typedef struct
 {
-	starting_alg alg;
-	em_options em_opts;
-	int timelimit;
-}solve_options;
-
-typedef struct
-{
 	em_start start;
 	em_opt opt;
 	double p1;
 	double p2;
 }em_options;
+
+typedef struct
+{
+	solver_id alg;
+	em_options* em_opts;
+	int timelimit;
+}solve_options;
 
 //====================FUNCTIONS=======================
 int* points_to_indexes(Instance*, Point*, int);

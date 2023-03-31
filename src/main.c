@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 	{
 		o.alg = EM,
 		o.timelimit = 300, //5 mins
-		o.em_opts = oo
+		o.em_opts = &oo
 	};
 	//extra_mileage(&instance, &o);		//RAND, MAX_DIST, CONV_HULL
 	//plot_generator(&instance);

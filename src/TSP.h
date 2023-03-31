@@ -61,6 +61,7 @@ typedef struct
 void parse_TSPLIB(Instance*);
 void print_error(const char*);
 void initialize_instance(Instance*);
+bool check_feasibility(int*, int);
 void parse_args(Instance*, int, char**);
 void print_points(Instance*);
 Point* generate_random_points(int);

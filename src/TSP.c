@@ -2,6 +2,35 @@
 #include "utility.h"
 #include <time.h>
 
+bool check_feasibility(int* sol, int n)
+{
+	//create and populate counters
+	int* counters = CALLOC(n-1, int);
+	for (int i = 0; i < n - 1; i++)
+	{
+		counters[sol[i]]++;
+	}
+
+	//check that it is a cycle
+	if (sol[0] != sol[n - 1])
+	{
+		free(counters);
+		return 0;
+	}
+
+	//check all counters are 1
+	for (int i = 0; i < n - 1; i++)
+	{
+		if (*(counters+i) != 0)
+		{
+			free(counters);
+			return 0;
+		}
+	}
+	free(counters);
+	return 1;
+}
+
 void initialize_instance(Instance* inst)
 {
 	inst->nnodes = -1;
@@ -27,7 +56,7 @@ void parse_args(Instance* inst, int argc, char** argv)
 		}
 		if (strncmp(argv[i], "-v", 2) == 0) //verbose level
 		{
-			strcpy(inst->verbose, atoi(argv[++i]));
+			inst->verbose = atoi(argv[++i]);
 			continue;
 		}
 		if (strncmp(argv[i], "-seed", 5) == 0) //verbose level
