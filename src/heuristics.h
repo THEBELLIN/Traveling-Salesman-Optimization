@@ -3,6 +3,7 @@
 
 #include "TSP.h"
 #include "utility.h"
+#include "genetics.h"
 
 //==============SHORTCUTS=================
 #define NORMAL {.opt=NORM, .p1=1, .p2=0};

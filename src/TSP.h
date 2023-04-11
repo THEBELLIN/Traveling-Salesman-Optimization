@@ -68,6 +68,7 @@ Point* generate_random_points(int);
 Point* generate_random_points_range(int, double, double);
 void free_instance(Instance*);
 double distance(Point*, Point*);
+double get_cost(Instance* inst, int* tour);
 //void plot_generator(Instance*);
 void plot_generator(Instance* inst, int n_edges);
 void print_points_file(Point*, int, FILE*);

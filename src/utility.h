@@ -29,12 +29,14 @@ inline double dmax(double d1, double d2) { return (d1 > d2) ? d1 : d2; }
 
 //====================functions============================
 int comparePoints(const Point*, const Point*);
+int compareIndividual(const individual*, const individual*);
 bool ccw(const Point*, const Point*, const Point*);
 void swap(int*, int, int);
 void initialize_cost(Instance*);
 bool is_equal_double(double, double);
 bool is_equal_points(Point*, Point*);
 double rand01();
+int rand_int(int, int);
 void invert_nodes(int*, int, int);
 double get_elapsed_time(timeval, timeval);
 void copy_array(int*, int*, int);

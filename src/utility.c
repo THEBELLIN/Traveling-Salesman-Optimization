@@ -1,5 +1,6 @@
 #include "TSP.h"
 #include "utility.h"
+#include "genetics.h"
 
 int comparePoints(const Point* p1, const Point* p2) 
 {
@@ -14,6 +15,21 @@ int comparePoints(const Point* p1, const Point* p2)
         return -1;
     if (p2->y < p1->y)
         return 1;
+    return 0;
+}
+
+int compareIndividual(const individual* i1, const individual* i2)
+{
+    //i1 is better -> goes later
+    if (i1->fitness < i2->fitness)
+    {
+        return 1;
+    }
+    //i2 is better -> goes later
+    if (i1->fitness > i2->fitness)
+    {
+        return -1;
+    }
     return 0;
 }
 
@@ -59,6 +75,12 @@ bool is_equal_points(Point* p1, Point* p2)
 double rand01()
 {
     return (double)rand() / RAND_MAX;
+}
+
+int rand_int(int lb, int ub)
+{
+    return (int) (rand01() * (ub - lb) + lb);
+    
 }
 
 // reverse the order of a segment of the tour
