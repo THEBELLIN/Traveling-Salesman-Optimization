@@ -15,13 +15,13 @@ int main(int argc, char** argv)
 	oo.start = CONV_HULL;
 	solve_options o =
 	{
-		o.alg = EM,
-		o.timelimit = 30, 
-		o.em_opts = &oo
+		.alg = EM,
+		.timelimit = 10, 
+		.em_opts = &oo
 	};
 	//extra_mileage(&instance, &o);		//RAND, MAX_DIST, CONV_HULL
-	//plot_generator(&instance);
 	solve(&instance, &o);
+	plot_generator(&instance, instance.nnodes);
 	free_instance(&instance);
 	return 0;
 }

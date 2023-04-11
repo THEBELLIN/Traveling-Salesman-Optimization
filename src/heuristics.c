@@ -825,7 +825,7 @@ void solve(Instance* inst, solve_options* options)
         time_elapsed = time(NULL) - inst->tstart;
     }
     //plot best instance found
-    plot_generator(inst, inst->nnodes);
+    //plot_generator(inst, inst->nnodes);
 }
 
 
