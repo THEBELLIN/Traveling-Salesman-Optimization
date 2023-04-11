@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	solve_options o =
 	{
 		o.alg = EM,
-		o.timelimit = 300, //5 mins
+		o.timelimit = 30, 
 		o.em_opts = &oo
 	};
 	//extra_mileage(&instance, &o);		//RAND, MAX_DIST, CONV_HULL

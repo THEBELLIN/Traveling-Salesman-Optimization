@@ -43,7 +43,7 @@ typedef struct
 }solve_options;
 
 //====================FUNCTIONS=======================
-int* points_to_indexes(Instance*, Point*, int);
+int* points_to_indexes(Instance*, Point*, int, int*);
 void add_in_position(int, int, int*, int);
 void extra_mileage(Instance*, em_options*);
 void extra_mileage_det(Instance*, int);

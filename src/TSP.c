@@ -35,7 +35,10 @@ void initialize_instance(Instance* inst)
 {
 	inst->nnodes = -1;
 	inst->bestsol = NULL;
+	inst->currsol = NULL;
 	inst->cost = NULL;
+	inst->currcost = INF_INT;
+	inst->bestcost = INF_INT;
 	inst->randomseed = 1337;
 	inst->tstart = time(NULL);
 	inst->tabu_tenure = -1;

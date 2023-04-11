@@ -60,9 +60,8 @@ void add_in_position(int h, int pos, int* arr, int len)
         swap(arr, i, i - 1);
 }
 
-int* points_to_indexes(Instance* inst, Point* p, int n)
+int* points_to_indexes(Instance* inst, Point* p, int n, int* indexes)
 {
-    int* indexes = MALLOC(n, int);
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < inst->nnodes; j++)
@@ -106,7 +105,7 @@ void extra_mileage_det(Instance* inst, em_start start)
     //select starting indexes
     int n = inst->nnodes;
     int* starting_points = NULL;
-    int n_starting;
+    int n_starting = 0;
 
     if (start == RAND)
     {
@@ -136,10 +135,10 @@ void extra_mileage_det(Instance* inst, em_start start)
     }
     else if (start == CONV_HULL)
     {
-        //Point* conv = convex_hull(inst, &n_starting);
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         initialize_cost(inst);
-        starting_points = points_to_indexes(inst, conv, n_starting);
+        starting_points = MALLOC(n_starting, int);
+        points_to_indexes(inst, conv, n_starting, starting_points);
         free(conv);
     }
     else
@@ -149,7 +148,7 @@ void extra_mileage_det(Instance* inst, em_start start)
     int current_nodes = n_starting;
     for (int i = 0; i < n; i++)
         inst->bestsol[i] = i;
-    inst->bestsol[n] = starting_points[0];
+    inst->bestsol[n] = *starting_points;
     //set current tour
     for (int i = 0; i < n_starting; i++)
     {
@@ -241,7 +240,8 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     {
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         initialize_cost(inst);
-        starting_points = points_to_indexes(inst, conv, n_starting);
+        starting_points = MALLOC(n_starting, int);
+        points_to_indexes(inst, conv, n_starting, starting_points);
         free(conv);
     }
     else
@@ -353,7 +353,8 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     {
         Point* conv = convex_hull(inst->points, inst->nnodes, &n_starting);
         initialize_cost(inst);
-        starting_points = points_to_indexes(inst, conv, n_starting);
+        starting_points = MALLOC(n_starting, int);
+        points_to_indexes(inst, conv, n_starting, starting_points);
         free(conv);
     }
     else
@@ -765,7 +766,7 @@ void next_bestsol(Instance* inst, int it) {
         //check for tabu nodes
         if (it - inst->tabu[inst->bestsol[i]] < inst->tabu_tenure || it - inst->tabu[inst->bestsol[i + 1]] < inst->tabu_tenure)
             continue;
-        for (int j = i + 2; j < n; j++) 
+        for (int j = i + 2; j < n - 1; j++) 
         {
             //check for tabu nodes
             if (it - inst->tabu[inst->bestsol[j]] < inst->tabu_tenure || it - inst->tabu[inst->bestsol[j + 1]] < inst->tabu_tenure)
@@ -793,10 +794,10 @@ void next_bestsol(Instance* inst, int it) {
     inst->currcost += best_delta;
     if (inst->currcost < inst->bestcost) //if new solution is best found, save it
     {
-        if (inst->verbose > 0)
-            printf("New best solution found of cost: %f", inst->bestcost);
         copy_array(inst->currsol, inst->bestsol, inst->nnodes + 1);
         inst->bestcost = inst->currcost;
+        if (inst->verbose > 0)
+            printf("New best solution found of cost: %f", inst->bestcost);
     }
 }
 
@@ -816,16 +817,17 @@ void solve(Instance* inst, solve_options* options)
     printf("starting to iterate");
     //iterate untill timelimit is exceeded
     int it = 0;
-    while (time(NULL) - inst->tstart < options->timelimit)
+    int time_elapsed = time(NULL) - inst->tstart;
+    while ( time_elapsed < options->timelimit)
     {
         next_bestsol(inst, it);
         it++;
+        time_elapsed = time(NULL) - inst->tstart;
     }
     //plot best instance found
     plot_generator(inst, inst->nnodes);
 }
 
 
-//add check for feasibility and if debug > tot print cost in update incumbent
 //plot cost of incumbent during solving (or cost in console but better to plot)
 //tabulate formatted output
