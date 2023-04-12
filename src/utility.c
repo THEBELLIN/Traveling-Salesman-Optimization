@@ -21,12 +21,12 @@ int comparePoints(const Point* p1, const Point* p2)
 int compareIndividual(const individual* i1, const individual* i2)
 {
     //i1 is better -> goes later
-    if (i1->fitness < i2->fitness)
+    if (i1->fitness > i2->fitness)
     {
         return 1;
     }
     //i2 is better -> goes later
-    if (i1->fitness > i2->fitness)
+    if (i1->fitness < i2->fitness)
     {
         return -1;
     }

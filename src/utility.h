@@ -2,6 +2,7 @@
 #define UTILITY_H
 
 #include "TSP.h"
+#include "genetics.h"
 
 //================shortcuts=============================
 #define MALLOC(n, type) ((type *) malloc ((n) * sizeof(type)))

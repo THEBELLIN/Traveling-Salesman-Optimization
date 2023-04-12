@@ -20,6 +20,7 @@ void generate_random_tour(int* genes, const int nnodes)
 	}
 }
 
+//select parents based on roulette-wheel selection
 void choose_parents(individual* population, int* parents, const int nparents)
 {
 	//sort population in increasing fitness (decreasing number)
@@ -28,13 +29,41 @@ void choose_parents(individual* population, int* parents, const int nparents)
 	//normalize fitness values
 	normalize_fitness(population);
 
-	//draw randomly between 0 and 1
-	double draw = rand01();
+	int selected[POP_SIZE];
+	memset(selected, 0, POP_SIZE * sizeof(int));
+	int chosen_parents = 0;
 
-	//seek for drawn parent
+	while (chosen_parents != nparents)
+	{
+		//draw randomly between 0 and 1
+		double draw = rand01();
 
-	//THIS ONLY WORKS IF FITNESS IS INCREASING IN BEST INDIVIDUALS
+		//seek for drawn parent
+		for (int i = 0; i < POP_SIZE; i++)
+		{
+			//first one to be higher gets chosen
+			if (population[i].normalized_fitness >= draw)
+			{
+				if (selected[i] = 0)
+				{
+					selected[i] = 1;
+					chosen_parents++;
+				}
+				break;
+			}
+		}
+	}
 
+	//copy selected parents to parents array
+	int t = 0;
+	for (int i = 0; i < POP_SIZE; i++)
+	{
+		if (selected[i])
+		{
+			parents[t] = i;
+			t++;
+		}
+	}
 }
 
 void normalize_fitness(individual* population)
@@ -57,3 +86,60 @@ void normalize_fitness(individual* population)
 	}
 }
 
+void generate_children(individual* population, int* parents, const int nparents, const int nnodes)
+{
+	int n_child = 0;
+	for (int i = 0; i < nparents; i = i + 2)
+	{
+		int j = (i + 1) % nparents; //%for odd number of parents
+		crossover(population, parents[i], parents[j], n_child, nnodes);
+		n_child++;
+	}
+}
+
+void crossover(individual* population, const int parent1, const int parent2, const int n_child, const int nnodes)
+{
+	individual p1 = population[parent1];
+	individual p2 = population[parent2];
+	individual* child = population + POP_SIZE + n_child;
+
+	//====================CUTOFF METHOD=====================
+	int cutoff = rand_int(0, nnodes);
+	int* visited = CALLOC(nnodes, int);
+	int index = 0;
+
+	for (int i = 0; i < nnodes; i++)
+	{
+		//before cutoff copy p1 tour
+		if (i <= cutoff)
+		{
+			child->genes[i] = p1.genes[i];
+			visited[p1.genes[i]] = 1;
+		}
+
+		//after cutoff, copy nonvisited nodes from p2
+		else
+		{
+			if (visited[p2.genes[i]])
+			{
+				continue;
+			}
+			child->genes[index] = p2.genes[i];
+			visited[p2.genes[index]] = 1;
+		}
+		index++;
+	}
+
+	//fill tour with missing nodes
+	while (index < nnodes)
+	{
+		for (int i = 0; i <= cutoff; i++)
+		{
+			if (!visited[p2.genes[i]])
+			{
+				child->genes[index++] = p2.genes[i];	
+			}
+		}
+	}
+	free(visited); 
+}

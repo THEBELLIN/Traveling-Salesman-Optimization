@@ -13,7 +13,7 @@
 typedef struct
 {
 	int* genes;
-	double fitness; //in our case this is actually the opposite. AKA the less fit, the better
+	double fitness; //1000/cost or something like that
 	double normalized_fitness;
 }individual;
 
@@ -21,5 +21,7 @@ typedef struct
 void generate_random_tour(int*, const int);
 void choose_parents(individual*, int*, const int);
 void normalize_fitness(individual*);
+void generate_children(individual*, int*, const int, const int);
+void crossover(individual*, const int, const int, const int, const int);
 
 #endif

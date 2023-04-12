@@ -265,16 +265,6 @@ double distance(Point* p1, Point* p2)
 	return d;
 }
 
-double get_cost(Instance* inst, int* tour)
-{
-	int cost = 0;
-	for (int i = 0; i < inst->nnodes; i++)
-	{
-		cost += distance(&inst->points[tour[i]], &inst->points[tour[i + 1]]);
-	}
-	return cost;
-}
-
 void print_points_file(Point* points, int n, FILE* out)
 {
 	fprintf(out, "DIMENSION : %d\n", n);
