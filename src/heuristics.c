@@ -831,3 +831,132 @@ void solve(Instance* inst, solve_options* options)
 
 //plot cost of incumbent during solving (or cost in console but better to plot)
 //tabulate formatted output
+
+void VNS(Instance* inst, int time_limit) {
+    nearest_neighbor_grasp_random(inst, 0, 0.5);// initialize solution
+    int start_time = time(NULL);
+    int n = inst->nnodes;
+    int i = 0;
+    inst->bestcost = calculateCost(inst, inst->bestsol);
+    two_opt(inst, inst->bestsol);
+    inst->currsol = (int*)calloc(n + 1, sizeof(int));
+    inst->currcost = inst->bestcost;
+
+    while (time(NULL) - start_time < time_limit) {
+        
+        memcpy(inst->currsol, inst->bestsol, (n + 1) * sizeof(int));
+        kick(inst, inst->currsol);
+        kick(inst, inst->currsol);
+        two_opt(inst, inst->currsol);
+        inst->currcost = calculateCost(inst, inst->currsol);
+        if (inst->currcost < inst->bestcost) {
+            
+            inst->bestcost = inst->currcost;
+            memcpy(inst->bestsol, inst->currsol, (n + 1) * sizeof(int));
+        }
+        j = j + 1;
+    }
+}
+
+void two_opt(Instance* inst, int* sol) {
+    int n = inst->nnodes;
+    int improved = 1;
+    while (improved) {
+        improved = 0;
+        int best_i = -1;
+        int best_j = -1;
+        double best_delta = 0.0;
+        for (int i = 0; i < n - 2; i++) {
+            for (int j = i + 2; j < n; j++) {
+                double dist_before = inst->cost[sol[i] * n + sol[i + 1]] + inst->cost[sol[j] * n + sol[j + 1]];
+                double dist_after = inst->cost[sol[i] * n + sol[j]] + inst->cost[sol[i + 1] * n + sol[j + 1]];
+                double delta = dist_after - dist_before;
+                if (delta < best_delta) {
+                    best_i = i;
+                    best_j = j;
+                    best_delta = delta;
+                }
+            }
+        }
+        if (best_delta < 0) {
+
+            invert_nodes(sol, best_i + 1, best_j);
+            improved = 1;
+            // inst->bestcost += best_delta;
+
+        }
+    }
+}
+
+void kick(Instance* inst, int* sol) {
+    int n = inst->nnodes;
+
+    int* randomEdges = (int*)calloc(3, sizeof(int));
+
+    randomEdges[0] = rand() % (n - 1);
+    // choses at random 3 nodes which represent the arcs to eliminate checking if they are equal and sorting them
+    for (int i = 1; i < 3; i++) {
+        double c = rand() % (n - 1);
+        if (checkNonEqual(randomEdges, c, i)) {
+            randomEdges[i] = c;
+            for (int j = i; j > 0; j--) {
+                if (randomEdges[j] < randomEdges[j - 1])
+                    swap(randomEdges, j, j - 1);
+            }
+        }
+        else
+            i--;
+
+    }
+
+    int* solutionRearrenged = (int*)calloc(n + 1, sizeof(int));
+    int i = 0;
+    int len = 0;
+    // copio fino al primo indice
+    while (sol[i] != sol[randomEdges[0] + 1]) {
+        solutionRearrenged[len] = sol[i];
+        i++;
+        len++;
+    }
+    // dopo sol[indice[0]] volgio sol[indice[1]+1]
+    i = randomEdges[1] + 1;
+
+    while (sol[i] != sol[randomEdges[2] + 1]) {
+        solutionRearrenged[len] = sol[i];
+        i++;
+        len++;
+    }
+    // da sol[indice 2] voglio sol[[indice 0]+1]
+    i = randomEdges[0] + 1;
+    while (sol[i] != sol[randomEdges[1] + 1]) {
+        solutionRearrenged[len] = sol[i];
+        i++;
+        len++;
+    }
+    //solutionRearrenged[len] = sol[indice[2] + 1];
+   // len++;
+    i = randomEdges[2] + 1;
+    while (sol[i] != sol[0]) {
+        solutionRearrenged[len] = sol[i];
+        i++;
+        len++;
+    }
+    solutionRearrenged[n] = sol[0];
+    //memcpy(sol, solutionRearrenged, sizeof(solutionRearrenged));
+    for (i = 0; i < n + 1; i++) {
+        sol[i] = solutionRearrenged[i];
+    }
+    free(randomEdges);
+    free(solutionRearrenged);
+}
+
+
+int checkNonEqual(int* array, int tocheck, int length) {
+    for (int i = 0; i < length; i++) {
+        if (array[i] == tocheck)
+            return 0;
+    }
+    return 1;
+}
+
+
