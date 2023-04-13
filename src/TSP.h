@@ -74,5 +74,7 @@ void print_points_file(Point*, int, FILE*);
 Instance* generate_test_bed(int, int, int);
 double get_cost(Instance*, int*);
 void save_if_best(Instance*);
+void file_perf_prof(int, int, int);
+
 
 #endif

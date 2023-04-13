@@ -58,4 +58,8 @@ Point* convex_hull(Point*, int, int*);
 void nearest_neighbor_grasp_random(Instance*, int, double);
 void next_bestsol(Instance*, int);
 void solve(Instance*, solve_options*);
+void VNS(Instance*, int);
+void two_opt(Instance*, int*);
+void kick(Instance*, int*);
+
 #endif

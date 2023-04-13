@@ -309,3 +309,19 @@ void save_if_best(Instance* inst)
 		inst->bestcost = inst->currcost;
 	}
 }
+}
+
+void file_perf_prof(int n_instances, int n_points, int seed) {
+	// generate n_instances random instances
+	FILE* out = fopen("../data/PerfProf.txt", "w");
+	if (out == NULL)
+		print_error("Error in opening output data file");
+	Instance* set = generate_test_bed(seed, n_instances, n_points);
+	fprintf(out, "%d nearest_neighbor allstart\n", 2);
+	for (int i = 0; i < n_instances; i++) {
+		nearest_neighbor(&set[i], 0);
+		fprintf(out, "Instance%d %f ", i + 1, set[i].bestcost);
+		nearest_neighbor_allstart(&set[i]);
+		fprintf(out, "%f\n", set[i].bestcost);
+	}
+}
