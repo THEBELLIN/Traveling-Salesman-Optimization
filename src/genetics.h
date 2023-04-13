@@ -18,6 +18,8 @@ typedef struct
 }individual;
 
 //================FUNCTIONS================
+void genetic(Instance*, const int);
+double get_fitness(Instance*, int*);
 void generate_random_tour(int*, const int);
 void choose_parents(individual*, int*, const int);
 void normalize_fitness(individual*);

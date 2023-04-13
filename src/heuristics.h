@@ -47,7 +47,7 @@ typedef struct
 int* points_to_indexes(Instance*, Point*, int, int*);
 void add_in_position(int, int, int*, int);
 void extra_mileage(Instance*, em_options*);
-void extra_mileage_det(Instance*, int);
+void extra_mileage_det(Instance*, em_start);
 void extra_mileage_grasp2(Instance*, em_start, double);
 void extra_mileage_grasp3(Instance*, em_start, double, double);
 void nearest_neighbor_grasp2(Instance*, int, double, double);

@@ -88,12 +88,11 @@ void extra_mileage(Instance* inst,  em_options* options)
     else
         print_error("Wrong parameter for extra mileage algorithm");
 
-    //set current solution to the best (and only) found 
-    copy_array(inst->bestsol, inst->currsol, inst->nnodes + 1);
+    //save the cost
+    inst->currcost = get_cost(inst, inst->currsol);
 
-    //set current and best solution to the best (and only) found
-    inst->bestcost = get_cost(inst, inst->bestsol);
-    inst->currcost = inst->bestcost;
+    //save if solution found is better
+    save_if_best(inst);
 }
 
 void extra_mileage_det(Instance* inst, em_start start)
@@ -250,14 +249,14 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     //extra mileage loop
     int current_nodes = n_starting;
     for (int i = 0; i < n; i++)
-        inst->bestsol[i] = i;
-    inst->bestsol[n] = starting_points[0];
+        inst->currsol[i] = i;
+    inst->currsol[n] = starting_points[0];
     //set current tour
     for (int i = 0; i < n_starting; i++)
     {
-        swap(inst->bestsol, i, starting_points[i]);
+        swap(inst->currsol, i, starting_points[i]);
     }
-    swap(inst->bestsol, n_starting, n);
+    swap(inst->currsol, n_starting, n);
     //untill all nodes are added
     while (current_nodes < n)
     {
@@ -273,8 +272,8 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
         for (int i = 0; i < current_nodes; i++) //considering edge inst->bestsol[i]->inst->bestsol[i+1]
         {
             edge e;
-            e.from = inst->bestsol[i];
-            e.to = inst->bestsol[i + 1];
+            e.from = inst->currsol[i];
+            e.to = inst->currsol[i + 1];
             //for all points not already considered
             for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->bestsol[j]
             {
@@ -298,9 +297,9 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
         }
         current_nodes++;
         if(!second)
-            add_in_position(new_point_index, place, inst->bestsol, current_nodes + 1);
+            add_in_position(new_point_index, place, inst->currsol, current_nodes + 1);
         if(second)
-            add_in_position(s_new_point_index, s_place, inst->bestsol, current_nodes + 1);
+            add_in_position(s_new_point_index, s_place, inst->currsol, current_nodes + 1);
         //DEBUG
         /*for (int i = 0; i < current_nodes + 1; i++)
             printf("%d ", inst->bestsol[i]);
@@ -309,6 +308,7 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
             printf("%d ", inst->bestsol[i]);
         printf("\n");*/
     }
+    //free
     free(starting_points);
 }
 

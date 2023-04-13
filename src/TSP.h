@@ -73,5 +73,6 @@ void plot_generator(Instance* inst, int n_edges);
 void print_points_file(Point*, int, FILE*);
 Instance* generate_test_bed(int, int, int);
 double get_cost(Instance*, int*);
+void save_if_best(Instance*);
 
 #endif

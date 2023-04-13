@@ -299,3 +299,13 @@ double get_cost(Instance* inst, int* sol)
 	}
 	return cost;
 }
+
+//checks if currsol is better than bestsol and saves it if that's the case
+void save_if_best(Instance* inst)
+{
+	if (inst->currcost < inst->bestcost)
+	{
+		copy_array(inst->currsol, inst->bestsol, inst->nnodes + 1);
+		inst->bestcost = inst->currcost;
+	}
+}
