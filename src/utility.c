@@ -33,6 +33,11 @@ int compareIndividual(const individual* i1, const individual* i2)
     return 0;
 }
 
+int compareIndividual_rev(const individual* i1, const individual* i2)
+{
+    return -compareIndividual(i1, i2);
+}
+
 //check if the triangle made of a,b,c is counterclockwise oriented and not flat
 //"p2 is under p3"
 // figure and explaination at https://www.lri.fr/~marche/MPRI-2-36-1/2014/hull.pdf
@@ -46,6 +51,14 @@ void swap(int* array, int ind1, int ind2) {
     temp = array[ind1];
     array[ind1] = array[ind2];
     array[ind2] = temp;
+}
+
+void swap_individual(individual* population, int i1, int i2)
+{
+    individual temp = population[i1];
+    population[i2] = population[i1];
+    population[i1] = temp; 
+
 }
 
 // initialize the array of costs

@@ -46,6 +46,7 @@ typedef struct
 	int randomseed;
 
 	double tstart;
+	double time_limit;
 	double bestcost, tbest, bestlb;		// incumbent solution
 	int* bestsol;						// incumbent solution
 	double currcost;					// current solution	

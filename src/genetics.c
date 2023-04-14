@@ -6,7 +6,8 @@
 
 void genetic(Instance* inst, const int niter)
 {
-	individual* population = MALLOC(POP_SIZE, individual);
+	//first 1000 are population, 
+	individual* population = MALLOC(POP_SIZE + N_CHILDREN, individual); 
 
 	//add currsol and bestsol to current population
 	population[0].genes = MALLOC(inst->nnodes + 1, int);
@@ -20,7 +21,7 @@ void genetic(Instance* inst, const int niter)
 	population[1].fitness = get_fitness(inst, population[1].genes);
 
 	//populate 98 more at random
-	for (int i = 2; i < 100; i++)
+	for (int i = 2; i < N_RAND; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
 		generate_random_tour(population[i].genes, inst->nnodes);
@@ -28,22 +29,53 @@ void genetic(Instance* inst, const int niter)
 	}
 
 	//populate other 900 using intelligient solutions
-	for (int i = 100; i < 500; i++)
+	//400 nearest neighbor grasp 2
+	for (int i = N_RAND; i < N_RAND + N_NN; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
 		//TODO NN_GRASP2
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}
 
-	for (int i = 500; i < POP_SIZE; i++)
+	//500 extramileage grasp 2 with p=0.1
+	for (int i = N_RAND + N_NN; i < POP_SIZE; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
-		extra_mileage_grasp2(inst, RAND, 0.1);
+		em_options o = {
+			.start = RAND,
+			.opt = GRASP_2,
+			.p1 = 0.1,
+			.p2 = 0
+		};
+		extra_mileage(inst, &o);
+		copy_array(inst->currsol, population[i].genes, inst->nnodes + 1);
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}
 
+	//allocate space for children
+	for (int i = POP_SIZE; i < POP_SIZE + N_CHILDREN; i++)
+	{
+		population[i].genes = MALLOC(inst->nnodes + 1, int);
+	}
+
+	//genetic algorithm
+	int it = 0;
+	while (time(NULL) - inst->tstart < inst->time_limit)
+	{
+		int* parents = MALLOC(N_PARENTS, int);
+		choose_parents(population, parents, N_PARENTS);
+		generate_children(inst, population, parents, N_PARENTS, N_CHILDREN, inst->nnodes);
+		selection(population, POP_SIZE + N_CHILDREN, POP_SIZE);
+		individual* champ = get_champion(population, POP_SIZE);
+		printf("\niteration: %d, champion fitness: %f", it, 1000 / champ->fitness);
+		copy_array(champ->genes, inst->currsol, inst->nnodes + 1);
+		save_if_best(inst);
+		free(parents);
+		it++;
+	}
+
 	//free
-	for (int i = 0; i < POP_SIZE; i++)
+	for (int i = 0; i < POP_SIZE + N_CHILDREN; i++)
 	{
 		free(population[i].genes);
 	}
@@ -142,18 +174,21 @@ void normalize_fitness(individual* population)
 	}
 }
 
-void generate_children(individual* population, int* parents, const int nparents, const int nnodes)
+//generates children after population in the same array
+void generate_children(Instance* inst, individual* population, int* parents, const int nparents, const int nchild, const int nnodes)
 {
 	int n_child = 0;
-	for (int i = 0; i < nparents; i = i + 2)
+	int i = 0;
+	for (int c = 0; c < nchild; c++)
 	{
 		int j = (i + 1) % nparents; //%for odd number of parents
-		crossover(population, parents[i], parents[j], n_child, nnodes);
+		i = (i + 2) % nparents;
+		crossover(inst, population, parents[i], parents[j], n_child, nnodes);
 		n_child++;
 	}
 }
 
-void crossover(individual* population, const int parent1, const int parent2, const int n_child, const int nnodes)
+void crossover(Instance* inst, individual* population, const int parent1, const int parent2, const int n_child, const int nnodes)
 {
 	individual p1 = population[parent1];
 	individual p2 = population[parent2];
@@ -197,6 +232,10 @@ void crossover(individual* population, const int parent1, const int parent2, con
 			}
 		}
 	}
+	//close the tour
+	child->genes[nnodes] = child->genes[0];
+	child->fitness = get_fitness(inst, child->genes);
+
 	free(visited); 
 
 	//method2: add remaining nodes with extra mileage TODO
@@ -208,10 +247,26 @@ individual* get_champion(individual* population, const int size)
 	return &population[size - 1];
 }
 
+void selection(individual* population, const int all_size, const int desired_size)
+{
+	if (all_size <= desired_size)
+	{
+		print_error("%s Error in resizing population in selection", __LINE__);
+	}
+
+	qsort(population, all_size, sizeof(individual), compareIndividual_rev);
+
+	//first AUTOMATIC_PASS get automatically selected
+	//other at random
+	for (int i = AUTOMATIC_PASS; i < desired_size; i++)
+	{
+		int j = rand_int(i, all_size - 1);
+		swap_individuals(population, i, j);
+	}
+}
+
 //MUTATION 1PARENT->1CHILD WITH KICK
 
 //KILL TO POP_COUNT
-
-//POPULATE START
 
 //DEFINE HYPERAPRAMS

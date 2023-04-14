@@ -803,6 +803,7 @@ void next_bestsol(Instance* inst, int it) {
 
 void solve(Instance* inst, solve_options* options)
 {
+    inst->time_limit = options->timelimit;
     if (options->alg == EM)
     {
         extra_mileage(inst, options->em_opts);

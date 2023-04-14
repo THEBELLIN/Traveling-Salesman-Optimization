@@ -307,6 +307,10 @@ void save_if_best(Instance* inst)
 	{
 		copy_array(inst->currsol, inst->bestsol, inst->nnodes + 1);
 		inst->bestcost = inst->currcost;
+		if (inst->verbose > 1)
+		{
+			printf("\nNew best solution found of cost: %f", inst->bestcost);
+		}
 	}
 }
 }
