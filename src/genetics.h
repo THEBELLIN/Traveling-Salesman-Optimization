@@ -30,7 +30,8 @@ void generate_random_tour(int*, const int);
 void choose_parents(individual*, int*, const int);
 void normalize_fitness(individual*);
 void generate_children(Instance*, individual*, int*, const int, const int, const int);
-void crossover(Instance*, individual*, const int, const int, const int, const int);
+void crossover(Instance*, individual*, const int, const int, const int);
+void mutation(Instance*, individual*, const int, const int);
 void selection(individual*, const int, const int);
 
 #endif

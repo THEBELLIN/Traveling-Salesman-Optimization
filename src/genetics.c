@@ -181,25 +181,34 @@ void generate_children(Instance* inst, individual* population, int* parents, con
 	int i = 0;
 	for (int c = 0; c < nchild; c++)
 	{
-		int j = (i + 1) % nparents; //%for odd number of parents
-		i = (i + 2) % nparents;
-		crossover(inst, population, parents[i], parents[j], n_child, nnodes);
-		n_child++;
+		int p = rand01();
+		if (p < P_MUTATION)
+		{
+			mutation(inst, population, i, n_child);
+			i++;
+		}
+		else
+		{
+			int j = (i + 1) % nparents; //%for odd number of parents
+			i = (i + 2) % nparents;
+			crossover(inst, population, parents[i], parents[j], n_child);
+			n_child++;
+		}
 	}
 }
 
-void crossover(Instance* inst, individual* population, const int parent1, const int parent2, const int n_child, const int nnodes)
+void crossover(Instance* inst, individual* population, const int parent1, const int parent2, const int n_child)
 {
 	individual p1 = population[parent1];
 	individual p2 = population[parent2];
 	individual* child = population + POP_SIZE + n_child;
 
 	//====================CUTOFF METHOD=====================
-	int cutoff = rand_int(0, nnodes);
-	int* visited = CALLOC(nnodes, int);
+	int cutoff = rand_int(0, inst->nnodes);
+	int* visited = CALLOC(inst->nnodes, int);
 	int index = 0;
 
-	for (int i = 0; i < nnodes; i++)
+	for (int i = 0; i < inst->nnodes; i++)
 	{
 		//before cutoff copy p1 tour
 		if (i <= cutoff)
@@ -222,7 +231,7 @@ void crossover(Instance* inst, individual* population, const int parent1, const 
 	}
 
 	//fill tour with missing nodes
-	while (index < nnodes)
+	while (index < inst->nnodes)
 	{
 		for (int i = 0; i <= cutoff; i++)
 		{
@@ -233,12 +242,18 @@ void crossover(Instance* inst, individual* population, const int parent1, const 
 		}
 	}
 	//close the tour
-	child->genes[nnodes] = child->genes[0];
+	child->genes[inst->nnodes] = child->genes[0];
 	child->fitness = get_fitness(inst, child->genes);
 
 	free(visited); 
 
 	//method2: add remaining nodes with extra mileage TODO
+}
+
+void mutation(Instance* inst, individual* population, const int parent, const int n_child)
+{
+	copy_array(&population[parent], &population[n_child], inst->nnodes + 1);
+	kick(inst, &population[n_child]);
 }
 
 individual* get_champion(individual* population, const int size)
@@ -261,7 +276,7 @@ void selection(individual* population, const int all_size, const int desired_siz
 	for (int i = AUTOMATIC_PASS; i < desired_size; i++)
 	{
 		int j = rand_int(i, all_size - 1);
-		swap_individuals(population, i, j);
+		swap_individual(population, i, j);
 	}
 }
 

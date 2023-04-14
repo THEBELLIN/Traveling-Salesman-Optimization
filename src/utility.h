@@ -34,7 +34,7 @@ int compareIndividual(const individual*, const individual*);
 int compareIndividual_rev(const individual*, const individual*);
 bool ccw(const Point*, const Point*, const Point*);
 void swap(int*, int, int);
-void swap_individuals(individual*, int, int);
+void swap_individual(individual*, int, int);
 void initialize_cost(Instance*);
 bool is_equal_double(double, double);
 bool is_equal_points(Point*, Point*);
