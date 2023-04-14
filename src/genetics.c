@@ -33,7 +33,10 @@ void genetic(Instance* inst, const int niter)
 	for (int i = N_RAND; i < N_RAND + N_NN; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
-		//TODO NN_GRASP2
+		//TODO fix NN_GRASP2
+		int starting_node = rand_int(0, inst->nnodes - 1);
+		nearest_neighbor_grasp2(inst, starting_node, 0.15, 0.05);
+		copy_array(inst->currsol, population[i].genes, inst->nnodes + 1);
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}
 
@@ -279,9 +282,3 @@ void selection(individual* population, const int all_size, const int desired_siz
 		swap_individual(population, i, j);
 	}
 }
-
-//MUTATION 1PARENT->1CHILD WITH KICK
-
-//KILL TO POP_COUNT
-
-//DEFINE HYPERAPRAMS

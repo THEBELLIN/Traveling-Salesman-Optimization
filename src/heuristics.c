@@ -662,9 +662,12 @@ void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
             len++;
         }
     }
+    //vanno salvati in currsol, poi si può usare save_if_better per automaticamente controllare se la soluzione va salvata anche in bestsol
     costo += inst->cost[start * n + last];
     inst->bestsol = current;
     inst->bestcost = costo;
+
+    //va liberata l'area di memoria precedentemente puntata da bestsol
 }
 
 // grasp where every 20 iteration it makes a random pick
