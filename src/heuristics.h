@@ -53,7 +53,7 @@ void extra_mileage_grasp3(Instance*, em_start, double, double);
 void nearest_neighbor_grasp2(Instance*, int, double, double);
 void nearest_neighbor_grasp(Instance*, int, double);
 int nearest_neighbor_allstart(Instance*);
-void nearest_neighbor(Instance*, int);
+void nearest_neighbor_det(Instance*, int);
 Point* convex_hull(Point*, int, int*);
 void nearest_neighbor_grasp_random(Instance*, int, double);
 void next_bestsol(Instance*, int);

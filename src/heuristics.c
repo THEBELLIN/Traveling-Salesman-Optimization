@@ -446,11 +446,11 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
 }
 
 //greedy NN given a starting point O(n^2)
-void nearest_neighbor(Instance* inst, int start) {
+void nearest_neighbor_det(Instance* inst, int start) 
+{
     if (start < 0)
         print_error("Invalid choice of the start node");
-    // allocates the array with the current tour and the unvisited nodes
-    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+
     int n = inst->nnodes;
     int len = 0;
     double costo = 0;
@@ -460,31 +460,36 @@ void nearest_neighbor(Instance* inst, int start) {
     // initializes the array of costs 
     initialize_cost(inst);
     //initialize current with the trivial permutation 0-1-2....-n
-    for (int i = 0; i < inst->nnodes; i++) {
-        current[i] = i;
+    for (int i = 0; i < inst->nnodes; i++) 
+    {
+        inst->currsol[i] = i;
     }
-    current[n] = start;
+    inst->currsol[n] = start;
     // moves at the beginnig the first covered node which is the starting node
-    swap(current, 0, start);
+    swap(inst->currsol, 0, start);
     len++;
-    for (int i = 1; i < inst->nnodes; i++) {
+    for (int i = 1; i < n; i++) 
+    {
         // finds minimum cost node from the last visited node of the tour
-        for (int j = len; j < inst->nnodes; j++) {
-            if (inst->cost[last * n + current[j]] < min) {
-                min = inst->cost[last * n + current[j]];
+        for (int j = len; j < n; j++) 
+        {
+            double c = COST(last, inst->currsol[j]);
+            if (c < min) 
+            {
+                min = c;
                 best_pos = j;
             }
         }
         // update the cost and rearranges the current array
-        costo = costo + min;
-        swap(current, len, best_pos);
+        costo += min;
+        swap(inst->currsol, len, best_pos);
         min = INF_DOUBLE;
-        last = current[len];
+        last = inst->currsol[len];
         len++;
     }
-    costo += inst->cost[start * n + last];
-    inst->bestsol = current;
-    inst->bestcost = costo;
+    costo += COST(start, last);
+    inst->currcost = costo;
+    save_if_best(inst);
 }
 
 // greedy NN with O(n^3) finds the best starting point and its solution
@@ -569,6 +574,7 @@ void nearest_neighbor_grasp(Instance* inst, int start, double p2)
 
     costo += COST(start, last);
     inst->currcost = costo;
+    save_if_best(inst);
 }
 
 // grasp NN given a starting point and the 2 probabities
