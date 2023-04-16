@@ -18,7 +18,7 @@ typedef enum
 	EM,
 	EM_GRASP2,
 	EM_GRASP3,
-
+	GEN
 }solver_id;
 //===============structs===============
 typedef struct

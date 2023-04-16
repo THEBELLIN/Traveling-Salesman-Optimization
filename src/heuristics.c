@@ -674,10 +674,11 @@ void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3)
 }
 
 // grasp where every 20 iteration it makes a random pick
-void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
+void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) 
+{
     if (start < 0)
         print_error("Invalid choice of the start node");
-    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+
     int n = inst->nnodes;
     int len = 0;
     double costo = 0;
@@ -687,68 +688,69 @@ void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) {
     int best_pos = -1;
     int best_pos2 = -1;
     initialize_cost(inst);
+
     //initialize current
     for (int i = 0; i < inst->nnodes; i++) {
-        current[i] = i;
+        inst->currsol[i] = i;
     }
-    current[n] = start;
-    swap(current, 0, start);
+    inst->currsol[n] = start;
+    swap(inst->currsol, 0, start);
     len++;
-    for (int i = 1; i < inst->nnodes; i++) {
-        if (i % 20 == 0) {
-            int d = ((double)rand() / RAND_MAX) * (inst->nnodes - 1 - len) + len;// gives me a number between len and n-1
-            printf("sono nel caso dove prendo una scelta random\n");
-            costo = costo + inst->cost[last * n + current[d]];
-            swap(current, len, d);
-            last = current[len];
+
+    for (int i = 1; i < inst->nnodes; i++) 
+    {
+        //every 20 iterations do a random add
+        if (i % 20 == 0) 
+        {
+            int d = rand_int(len, n-1);
+            costo += COST(last, inst->currsol[d]);
+            swap(inst->currsol, len, d);
+            last = inst->currsol[len];
             len++;
         }
         else
         {
-            for (int j = len; j < inst->nnodes; j++) {
-
-                if (inst->cost[last * n + current[j]] < min2) {
-
-                    if (inst->cost[last * n + current[j]] < min) {
+            //compute min costs
+            for (int j = len; j < inst->nnodes; j++) 
+            {
+                double c = COST(last, inst->currsol[j]);
+                if (c < min2) 
+                {
+                    if (c < min) 
+                    {
                         min2 = min;
                         best_pos2 = best_pos;
-                        min = inst->cost[last * n + current[j]];
+                        min = c;
                         best_pos = j;
                     }
-                    else {
-                        min2 = inst->cost[last * n + current[j]];
+                    else 
+                    {
+                        min2 = c;
                         best_pos2 = j;
                     }
                 }
 
             }
-            double c = rand01();
-            printf("random : %f\n", c);
-            if (c < p2 && min2 < INF_DOUBLE) {
-                printf("sono nel caso dove prendo secondo migliore\n");
-                costo = costo + min2;
-                swap(current, len, best_pos2);
-                min = INF_DOUBLE;
-                min2 = INF_DOUBLE;
-                last = current[len];
-                len++;
+            double draw = rand01();
+            if (draw < p2) 
+            {
+                costo += min2;
+                swap(inst->currsol, len, best_pos2);
             }
             else
             {
-                printf("sono nel caso dove prendo primo migliore\n");
-                costo = costo + min;
-                swap(current, len, best_pos);
-                min = INF_DOUBLE;
-                min2 = INF_DOUBLE;
-                last = current[len];
-                len++;
+                costo += min;
+                swap(inst->currsol, len, best_pos);
             }
+            min = INF_DOUBLE;
+            min2 = INF_DOUBLE;
+            last = inst->currsol[len];
+            len++;
         }
     }
-
-    costo += inst->cost[start * n + last];
-    inst->bestsol = current;
-    inst->bestcost = costo;
+    costo += COST(start, last);
+    inst->currcost = costo;
+    save_if_best(inst);
 }
 
 
@@ -818,6 +820,11 @@ void solve(Instance* inst, solve_options* options)
     {
         nearest_neighbor(inst, 0); //TODO fix this
     }
+    else if (options->alg == GEN)
+    {
+        genetic(inst); 
+        return;
+    }
     else
         print_error("%s, Error in setting algorithm options for solving", __LINE__);
 
@@ -839,18 +846,19 @@ void solve(Instance* inst, solve_options* options)
 //plot cost of incumbent during solving (or cost in console but better to plot)
 //tabulate formatted output
 
-void VNS(Instance* inst, int time_limit) {
-    nearest_neighbor_grasp_random(inst, 0, 0.5);// initialize solution
-    int start_time = time(NULL);
+void VNS(Instance* inst) 
+{
+    // initialize solution
+    nearest_neighbor_grasp_random(inst, 0, 0.5);
     int n = inst->nnodes;
     int i = 0;
-    inst->bestcost = calculateCost(inst, inst->bestsol);
+    inst->currcost = calculateCost(inst, inst->currsol);
     two_opt(inst, inst->bestsol);
     inst->currsol = (int*)calloc(n + 1, sizeof(int));
     inst->currcost = inst->bestcost;
 
-    while (time(NULL) - start_time < time_limit) {
-        
+    while (time(NULL) - start_time < inst->time_limit) 
+    {
         memcpy(inst->currsol, inst->bestsol, (n + 1) * sizeof(int));
         kick(inst, inst->currsol);
         kick(inst, inst->currsol);
