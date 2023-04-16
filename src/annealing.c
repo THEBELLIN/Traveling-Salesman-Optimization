@@ -47,3 +47,10 @@ void simulated_annealing(Instance* inst, int time_limit) {
 }
 
 
+void random_two_opt_move(int* sol, Instance* inst) {
+    int n = inst->nnodes;
+    int first = rand() % (n - 4);
+    int second = first + (rand() % (n - 2 - first + 1));
+    invert_nodes(sol, first + 1, second);
+}
+
