@@ -849,54 +849,50 @@ void VNS(Instance* inst)
     nearest_neighbor_grasp_random(inst, 0, 0.5);
     int n = inst->nnodes;
     int i = 0;
-    inst->currcost = calculateCost(inst, inst->currsol);
-    two_opt(inst, inst->bestsol);
-    inst->currsol = (int*)calloc(n + 1, sizeof(int));
+    //copy bestsol to currsol since two_opt works on currsol
+    copy_array(inst->bestsol, inst->currsol, inst->nnodes + 1);
     inst->currcost = inst->bestcost;
+    two_opt(inst);
 
-    while (time(NULL) - start_time < inst->time_limit) 
+    while (time(NULL) - inst->tstart < inst->time_limit) 
     {
-        memcpy(inst->currsol, inst->bestsol, (n + 1) * sizeof(int));
         kick(inst, inst->currsol);
         kick(inst, inst->currsol);
-        two_opt(inst, inst->currsol);
-        inst->currcost = calculateCost(inst, inst->currsol);
-        if (inst->currcost < inst->bestcost) {
-            
-            inst->bestcost = inst->currcost;
-            memcpy(inst->bestsol, inst->currsol, (n + 1) * sizeof(int));
-        }
-        j = j + 1;
+        two_opt(inst);
+        save_if_best(inst);
     }
 }
 
-void two_opt(Instance* inst, int* sol) {
+void two_opt(Instance* inst) 
+{
     int n = inst->nnodes;
-    int improved = 1;
-    while (improved) {
-        improved = 0;
+    double best_delta = - 1;
+    while (best_delta < 0) 
+    {
+        best_delta = 0;
         int best_i = -1;
         int best_j = -1;
-        double best_delta = 0.0;
-        for (int i = 0; i < n - 2; i++) {
-            for (int j = i + 2; j < n; j++) {
-                double dist_before = inst->cost[sol[i] * n + sol[i + 1]] + inst->cost[sol[j] * n + sol[j + 1]];
-                double dist_after = inst->cost[sol[i] * n + sol[j]] + inst->cost[sol[i + 1] * n + sol[j + 1]];
+        for (int i = 0; i < n - 2; i++) 
+        {
+            for (int j = i + 2; j < n; j++) 
+            {
+                double dist_before = COST(inst->currsol[i], inst->currsol[i + 1]) + COST(inst->currsol[j], inst->currsol[j + 1]);
+                double dist_after = COST(inst->currsol[i], inst->currsol[j]) + COST(inst->currsol[i + 1], inst->currsol[j + 1]);
                 double delta = dist_after - dist_before;
-                if (delta < best_delta) {
+                if (delta < best_delta) 
+                {
                     best_i = i;
                     best_j = j;
                     best_delta = delta;
                 }
             }
         }
-        if (best_delta < 0) {
-
-            invert_nodes(sol, best_i + 1, best_j);
-            improved = 1;
-            // inst->bestcost += best_delta;
-
+        if (best_delta < 0) 
+        {
+            invert_nodes(inst->currsol, best_i + 1, best_j);
+            inst->currcost += best_delta;
         }
+        save_if_best(inst);
     }
 }
 
