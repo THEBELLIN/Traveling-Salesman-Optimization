@@ -493,22 +493,25 @@ void nearest_neighbor_det(Instance* inst, int start)
 }
 
 // greedy NN with O(n^3) finds the best starting point and its solution
-int nearest_neighbor_allstart(Instance* inst) {
+int nearest_neighbor_allstart(Instance* inst) 
+{
     double best_current_cost = INF_DOUBLE;
     int best_start;
-    for (int i = 0; i < inst->nnodes; i++) {
-        nearest_neighbor(inst, i);
+    for (int i = 0; i < inst->nnodes; i++) 
+    {
+        nearest_neighbor_det(inst, i);
         if (inst->bestcost < best_current_cost) {
             best_current_cost = inst->bestcost;
             best_start = i;
+            /*DEBUG
             printf("The solution has been updated\n new solution: ");
-            for (int j = 0; j < inst->nnodes; j++) {
+            for (int j = 0; j < inst->nnodes; j++) 
+            {
                 printf("%d ", inst->bestsol[j]);
             }
-            printf("\n The total cost is now: %f\n", inst->bestcost);
+            printf("\n The total cost is now: %f\n", inst->bestcost);*/
         }
     }
-    nearest_neighbor(inst, best_start);
     return best_start;
 }
 
