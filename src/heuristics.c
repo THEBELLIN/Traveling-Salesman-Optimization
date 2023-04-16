@@ -507,10 +507,11 @@ int nearest_neighbor_allstart(Instance* inst) {
     return best_start;
 }
 
-void nearest_neighbor_grasp(Instance* inst, int start, double p2) {
+void nearest_neighbor_grasp(Instance* inst, int start, double p2) 
+{
     if (start < 0)
         print_error("Invalid choice of the start node");
-    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+
     int n = inst->nnodes;
     int len = 0;
     double costo = 0;
@@ -521,56 +522,53 @@ void nearest_neighbor_grasp(Instance* inst, int start, double p2) {
     int best_pos2 = -1;
     initialize_cost(inst);
     //initialize current
-    for (int i = 0; i < inst->nnodes; i++) {
-        current[i] = i;
+    for (int i = 0; i < inst->nnodes; i++) 
+    {
+        inst->currsol[i] = i;
     }
-    current[n] = start;
-    swap(current, 0, start);
+    inst->currsol[n] = start;
+    swap(inst->currsol, 0, start);
     len++;
-    for (int i = 1; i < inst->nnodes; i++) {
-        for (int j = len; j < inst->nnodes; j++) {
-
-            if (inst->cost[last * n + current[j]] < min2) {
-
-                if (inst->cost[last * n + current[j]] < min) {
+    for (int i = 1; i < n; i++) 
+    {
+        for (int j = len; j < n; j++) 
+        {
+            double c = COST(last, inst->currsol[j]);
+            if (c < min2) 
+            {
+                if (c < min) 
+                {
                     min2 = min;
                     best_pos2 = best_pos;
-                    min = inst->cost[last * n + current[j]];
+                    min = c;
                     best_pos = j;
                 }
-                else {
-                    min2 = inst->cost[last * n + current[j]];
+                else 
+                {
+                    min2 = c;
                     best_pos2 = j;
                 }
             }
-
         }
-        double c = rand01();
-        printf("random : %f\n", c);
-        if (c < p2 && min2 < INF_DOUBLE) {
-            printf("sono nel caso dove prendo secondo migliore\n");
-            costo = costo + min2;
-            swap(current, len, best_pos2);
-            min = INF_DOUBLE;
-            min2 = INF_DOUBLE;
-            last = current[len];
-            len++;
+        double draw = rand01();
+        if (draw < p2 ) 
+        {
+            costo += min2;
+            swap(inst->currsol, len, best_pos2);
         }
         else
         {
-            printf("sono nel caso dove prendo primo migliore\n");
-            costo = costo + min;
-            swap(current, len, best_pos);
-            min = INF_DOUBLE;
-            min2 = INF_DOUBLE;
-            last = current[len];
-            len++;
+            costo += min;
+            swap(inst->currsol, len, best_pos);
         }
+        min = INF_DOUBLE;
+        min2 = INF_DOUBLE;
+        last = inst->currsol[len];
+        len++;
     }
 
-    costo += inst->cost[start * n + last];
-    inst->bestsol = current;
-    inst->bestcost = costo;
+    costo += COST(start, last);
+    inst->currcost = costo;
 }
 
 // grasp NN given a starting point and the 2 probabities
@@ -635,36 +633,26 @@ void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3)
             }
         }
         double draw = rand01();
-        if (draw < p3 && min3 < INF_DOUBLE) 
+        if (draw < p3 ) 
         {
             costo = costo + min3;
             swap(inst->currsol, len, best_pos3);
-            min = INF_DOUBLE;
-            min2 = INF_DOUBLE;
-            min3 = INF_DOUBLE;
-            last = inst->bestsol[len];
-            len++;
         }
-        else if (p3 < draw && draw < p2 + p3 && min2 < INF_DOUBLE) 
+        else if (p3 < draw && draw < p2 + p3 ) 
         {
             costo = costo + min2;
             swap(inst->currsol, len, best_pos2);
-            min = INF_DOUBLE;
-            min2 = INF_DOUBLE;
-            min3 = INF_DOUBLE;
-            last = inst->currsol[len];
-            len++;
         }
         else if (draw > p3 + p2) 
         {
             costo = costo + min;
             swap(inst->bestsol, len, best_pos);
-            min = INF_DOUBLE;
-            min2 = INF_DOUBLE;
-            min3 = INF_DOUBLE;
-            last = inst->bestsol[len];
-            len++;
         }
+        min = INF_DOUBLE;
+        min2 = INF_DOUBLE;
+        min3 = INF_DOUBLE;
+        last = inst->bestsol[len];
+        len++;
     }
     costo += COST(start, last);
     inst->currcost = costo;
