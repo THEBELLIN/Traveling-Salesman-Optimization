@@ -574,10 +574,13 @@ void nearest_neighbor_grasp(Instance* inst, int start, double p2) {
 }
 
 // grasp NN given a starting point and the 2 probabities
-void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
+void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) 
+{
     if (start < 0)
-        print_error("Invalid choice of the start node");
-    int* current = (int*)calloc(inst->nnodes + 1, sizeof(int));
+    {
+        print_error("%s, Invalid choice of the start node", __LINE__);
+    }
+
     int n = inst->nnodes;
     int len = 0;
     double costo = 0;
@@ -589,85 +592,85 @@ void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) {
     int best_pos2 = -1;
     int best_pos3 = -1;
     initialize_cost(inst);
+
     //initialize current
     for (int i = 0; i < inst->nnodes; i++) {
-        current[i] = i;
+        inst->currsol[i] = i;
     }
-    current[n] = start;
-    swap(current, 0, start);
+    inst->currsol[n] = start;
+    swap(inst->currsol, 0, start);
     len++;
-    for (int i = 1; i < inst->nnodes; i++) {
-        for (int j = len; j < inst->nnodes; j++) {
-            if (inst->cost[last * n + current[j]] < min3) {
 
-                if (inst->cost[last * n + current[j]] < min2) {
-
-                    if (inst->cost[last * n + current[j]] < min) {
-
+    for (int i = 1; i < inst->nnodes; i++) 
+    {
+        for (int j = len; j < inst->nnodes; j++) 
+        {
+            double c = COST(last, inst->currsol[j]);
+            if (c < min3) 
+            {
+                if (c < min2) 
+                {
+                    if (c < min) 
+                    {
                         min3 = min2;
                         best_pos3 = best_pos2;
                         min2 = min;
                         best_pos2 = best_pos;
-                        min = inst->cost[last * n + current[j]];
+                        min = c;
                         best_pos = j;
-
                     }
-                    else {
-
+                    else 
+                    {
                         min3 = min2;
                         best_pos3 = best_pos2;
-                        min2 = inst->cost[last * n + current[j]];
+                        min2 = c;
                         best_pos2 = j;
-
                     }
                 }
-                else {
-
-                    min3 = inst->cost[last * n + current[j]];
+                else 
+                {
+                    min3 = c;
                     best_pos3 = j;
-
                 }
             }
         }
-        double c = rand01();
-        printf("random : %f\n", c);
-        if (c < p3 && min3 < INF_DOUBLE) {
-            printf("sono nel caso dove prendo terzo migliore\n");
+        double draw = rand01();
+        if (draw < p3 && min3 < INF_DOUBLE) 
+        {
             costo = costo + min3;
-            swap(current, len, best_pos3);
+            swap(inst->currsol, len, best_pos3);
             min = INF_DOUBLE;
             min2 = INF_DOUBLE;
             min3 = INF_DOUBLE;
-            last = current[len];
+            last = inst->bestsol[len];
             len++;
         }
-        else if (p3 < c && c < p2 + p3 && min2 < INF_DOUBLE) {
-            printf("sono nel caso dove prendo secondo migliore\n");
+        else if (p3 < draw && draw < p2 + p3 && min2 < INF_DOUBLE) 
+        {
             costo = costo + min2;
-            swap(current, len, best_pos2);
+            swap(inst->currsol, len, best_pos2);
             min = INF_DOUBLE;
             min2 = INF_DOUBLE;
             min3 = INF_DOUBLE;
-            last = current[len];
+            last = inst->currsol[len];
             len++;
         }
-        else if (c > p3 + p2) {
-            printf("sono nel caso dove prendo primo migliore\n");
+        else if (draw > p3 + p2) 
+        {
             costo = costo + min;
-            swap(current, len, best_pos);
+            swap(inst->bestsol, len, best_pos);
             min = INF_DOUBLE;
             min2 = INF_DOUBLE;
             min3 = INF_DOUBLE;
-            last = current[len];
+            last = inst->bestsol[len];
             len++;
         }
     }
-    //vanno salvati in currsol, poi si può usare save_if_better per automaticamente controllare se la soluzione va salvata anche in bestsol
-    costo += inst->cost[start * n + last];
-    inst->bestsol = current;
-    inst->bestcost = costo;
+    costo += COST(start, last);
+    inst->currcost = costo;
 
-    //va liberata l'area di memoria precedentemente puntata da bestsol
+    //save if newbest sol found
+    save_if_best(inst);
 }
 
 // grasp where every 20 iteration it makes a random pick
