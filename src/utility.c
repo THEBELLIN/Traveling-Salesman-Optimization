@@ -92,8 +92,11 @@ double rand01()
 
 int rand_int(int lb, int ub)
 {
+    if (ub < lb)
+    {
+        print_error("%s, upper bound lower than lower bound on rand_int call", __LINE__);
+    }
     return (int) (rand01() * (ub - lb) + lb);
-    
 }
 
 // reverse the order of a segment of the tour

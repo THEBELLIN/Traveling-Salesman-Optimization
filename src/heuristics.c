@@ -896,61 +896,69 @@ void two_opt(Instance* inst)
     }
 }
 
-void kick(Instance* inst, int* sol) {
+void kick(Instance* inst, int* sol) 
+{
     int n = inst->nnodes;
+    int* randomEdges = CALLOC(3, int);
+    randomEdges[0] = rand_int(0, n - 1);
 
-    int* randomEdges = (int*)calloc(3, sizeof(int));
-
-    randomEdges[0] = rand() % (n - 1);
     // choses at random 3 nodes which represent the arcs to eliminate checking if they are equal and sorting them
-    for (int i = 1; i < 3; i++) {
-        double c = rand() % (n - 1);
-        if (checkNonEqual(randomEdges, c, i)) {
+    for (int i = 1; i < 3; i++) 
+    {
+        double c = rand_int(0, n - 1);
+        if (checkNonEqual(randomEdges, c, i)) 
+        {
             randomEdges[i] = c;
-            for (int j = i; j > 0; j--) {
+            //keep them sorted
+            for (int j = i; j > 0; j--) 
+            {
                 if (randomEdges[j] < randomEdges[j - 1])
+                {
                     swap(randomEdges, j, j - 1);
+                }
             }
         }
         else
             i--;
-
     }
 
-    int* solutionRearrenged = (int*)calloc(n + 1, sizeof(int));
+    int* solutionRearrenged = CALLOC(n + 1, int);
     int i = 0;
     int len = 0;
-    // copio fino al primo indice
-    while (sol[i] != sol[randomEdges[0] + 1]) {
+    // copy untill first index
+    while (sol[i] != sol[randomEdges[0] + 1]) 
+    {
         solutionRearrenged[len] = sol[i];
         i++;
         len++;
     }
-    // dopo sol[indice[0]] volgio sol[indice[1]+1]
+    // after sol[index[0]] put sol[index[1]+1]
     i = randomEdges[1] + 1;
 
-    while (sol[i] != sol[randomEdges[2] + 1]) {
+    while (sol[i] != sol[randomEdges[2] + 1]) 
+    {
         solutionRearrenged[len] = sol[i];
         i++;
         len++;
     }
-    // da sol[indice 2] voglio sol[[indice 0]+1]
+    // from sol[index 2] put sol[[index 0]+1]
     i = randomEdges[0] + 1;
-    while (sol[i] != sol[randomEdges[1] + 1]) {
+    while (sol[i] != sol[randomEdges[1] + 1]) 
+    {
         solutionRearrenged[len] = sol[i];
         i++;
         len++;
     }
-    //solutionRearrenged[len] = sol[indice[2] + 1];
+    //solutionRearrenged[len] = sol[index[2] + 1];
    // len++;
     i = randomEdges[2] + 1;
-    while (sol[i] != sol[0]) {
+    while (sol[i] != sol[0]) 
+    {
         solutionRearrenged[len] = sol[i];
         i++;
         len++;
     }
     solutionRearrenged[n] = sol[0];
-    //memcpy(sol, solutionRearrenged, sizeof(solutionRearrenged));
     for (i = 0; i < n + 1; i++) {
         sol[i] = solutionRearrenged[i];
     }
