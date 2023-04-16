@@ -317,7 +317,6 @@ void save_if_best(Instance* inst)
 		}
 	}
 }
-}
 
 void file_perf_prof(int n_instances, int n_points, int seed) {
 	// generate n_instances random instances
