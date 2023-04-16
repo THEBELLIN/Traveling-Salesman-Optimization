@@ -62,4 +62,6 @@ void VNS(Instance*);
 void two_opt(Instance*);
 void kick(Instance*, int*);
 
+//TODO SPLIT IN DIFFERENT FILES
+
 #endif

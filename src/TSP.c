@@ -5,7 +5,7 @@
 bool check_feasibility(int* sol, int n)
 {
 	//create and populate counters
-	int* counters = CALLOC(n-1, int);
+	int* counters = CALLOC(n - 1, int);
 	for (int i = 0; i < n - 1; i++)
 	{
 		counters[sol[i]]++;
@@ -303,6 +303,10 @@ double get_cost(Instance* inst, int* sol)
 //checks if currsol is better than bestsol and saves it if that's the case
 void save_if_best(Instance* inst)
 {
+	if (!check_feasibility(inst->currsol, inst->nnodes))
+	{
+		print_error("%s, Unfeasible solution found", __LINE__);
+	}
 	if (inst->currcost < inst->bestcost)
 	{
 		copy_array(inst->currsol, inst->bestsol, inst->nnodes + 1);

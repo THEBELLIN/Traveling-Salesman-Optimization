@@ -974,5 +974,3 @@ int checkNonEqual(int* array, int tocheck, int length) {
     }
     return 1;
 }
-
-
