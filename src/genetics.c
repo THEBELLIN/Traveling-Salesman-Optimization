@@ -261,7 +261,7 @@ void mutation(Instance* inst, individual* population, const int parent, const in
 individual* get_champion(individual* population, const int size)
 {
 	qsort(population, size, sizeof(individual), compareIndividual);
-	return &population[size - 1];
+	return population + (size - 1);	
 }
 
 void selection(individual* population, const int all_size, const int desired_size)

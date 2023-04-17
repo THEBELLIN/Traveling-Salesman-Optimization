@@ -301,6 +301,7 @@ double get_cost(Instance* inst, int* sol)
 }
 
 //checks if currsol is better than bestsol and saves it if that's the case
+//verbose > 1 print every best solution
 void save_if_best(Instance* inst)
 {
 	if (!check_feasibility(inst->currsol, inst->nnodes))
