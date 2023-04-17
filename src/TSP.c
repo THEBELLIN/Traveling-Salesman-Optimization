@@ -2,26 +2,27 @@
 #include "utility.h"
 #include <time.h>
 
+//check feasibility of a solution with n nodes
 bool check_feasibility(int* sol, int n)
 {
 	//create and populate counters
-	int* counters = CALLOC(n - 1, int);
-	for (int i = 0; i < n - 1; i++)
+	int* counters = CALLOC(n, int);
+	for (int i = 0; i < n; i++)
 	{
 		counters[sol[i]]++;
 	}
 
 	//check that it is a cycle
-	if (sol[0] != sol[n - 1])
+	if (sol[0] != sol[n])
 	{
 		free(counters);
 		return 0;
 	}
 
 	//check all counters are 1
-	for (int i = 0; i < n - 1; i++)
+	for (int i = 0; i < n; i++)
 	{
-		if (*(counters+i) != 0)
+		if (*(counters+i) != 1)
 		{
 			free(counters);
 			return 0;
@@ -78,7 +79,7 @@ void parse_args(Instance* inst, int argc, char** argv)
 void parse_TSPLIB(Instance* inst)
 {
 	FILE* fin = fopen(inst->inputfile, "r");
-	printf("%s", inst->inputfile);
+	printf("%d", inst->inputfile);
 	if (fin == NULL)
 		print_error("input file not opened correctly");
 
@@ -142,7 +143,7 @@ void print_points(Instance* inst)
 
 void print_error(const char* msg)
 {
-	printf("ERROR: %s", msg);
+	printf("ERROR: %d", msg);
 	exit(1);
 }
 
@@ -306,7 +307,7 @@ void save_if_best(Instance* inst)
 {
 	if (!check_feasibility(inst->currsol, inst->nnodes))
 	{
-		print_error("%s, Unfeasible solution found", __LINE__);
+		print_error("%d, Unfeasible solution found", __LINE__);
 	}
 	if (inst->currcost < inst->bestcost)
 	{

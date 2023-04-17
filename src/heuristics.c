@@ -250,6 +250,8 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     int current_nodes = n_starting;
     for (int i = 0; i < n; i++)
         inst->currsol[i] = i;
+    //BUG: STARTING POINTS[I] MUST BE GREQ THAN I OR IT LEADS TO UNFESIBLE SOLUTIONS
+    //TODO FIX
     inst->currsol[n] = starting_points[0];
     //set current tour
     for (int i = 0; i < n_starting; i++)
@@ -367,7 +369,7 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     if (starting_points) //!=NULL
         inst->currsol[n] = *starting_points;
     else
-        print_error("%s: Starting points is NULL pointer", __LINE__);
+        print_error("%d: Starting points is NULL pointer", __LINE__);
     //set current tour
     for (int i = 0; i < n_starting; i++)
     {
@@ -604,7 +606,7 @@ void nearest_neighbor_grasp3(Instance* inst, int start, double p2, double p3)
 {
     if (start < 0)
     {
-        print_error("%s, Invalid choice of the start node", __LINE__);
+        print_error("%d, Invalid choice of the start node", __LINE__);
     }
 
     int n = inst->nnodes;
@@ -782,7 +784,7 @@ void next_bestsol(Instance* inst, int it) {
 
     //check for tabu tenure validity
     if (inst->tabu_tenure < 0)
-        print_error("%s, Impossible value of tabu tenure", __LINE__);
+        print_error("%d, Impossible value of tabu tenure", __LINE__);
 
     //check for the best 2-opt move possible
     for (int i = 0; i < n - 2; i++) 
@@ -806,7 +808,7 @@ void next_bestsol(Instance* inst, int it) {
         }
     }
     if (best_delta == INF_DOUBLE)
-        print_error("%s, Error in finding another solution", __LINE__);
+        print_error("%d, Error in finding another solution", __LINE__);
 
     //put all 4 nodes swapped in tabu list
     inst->tabu[inst->currsol[best_arc]] = it;
@@ -842,7 +844,7 @@ void solve(Instance* inst, solve_options* options)
         return;
     }
     else
-        print_error("%s, Error in setting algorithm options for solving", __LINE__);
+        print_error("%d, Error in setting algorithm options for solving", __LINE__);
 
     printf("starting to iterate");
     //iterate untill timelimit is exceeded
@@ -857,7 +859,6 @@ void solve(Instance* inst, solve_options* options)
     //plot best instance found
     //plot_generator(inst, inst->nnodes);
 }
-
 
 //plot cost of incumbent during solving (or cost in console but better to plot)
 //tabulate formatted output
@@ -984,7 +985,6 @@ void kick(Instance* inst, int* sol)
     free(randomEdges);
     free(solutionRearrenged);
 }
-
 
 int checkNonEqual(int* array, int tocheck, int length) {
     for (int i = 0; i < length; i++) {
