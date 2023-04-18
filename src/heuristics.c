@@ -146,14 +146,14 @@ void extra_mileage_det(Instance* inst, em_start start)
     //extra mileage loop
     int current_nodes = n_starting;
     for (int i = 0; i < n; i++)
-        inst->bestsol[i] = i;
-    inst->bestsol[n] = *starting_points;
+        inst->currsol[i] = i;
+    inst->currsol[n] = *starting_points;
     //set current tour
     for (int i = 0; i < n_starting; i++)
     {
-        swap(inst->bestsol, i, starting_points[i]);
+        swap(inst->currsol, i, starting_points[i]);
     }
-    swap(inst->bestsol, n_starting, n);
+    swap(inst->currsol, n_starting, n);
 
     //untill all nodes are added
     while (current_nodes < n)
@@ -166,13 +166,13 @@ void extra_mileage_det(Instance* inst, em_start start)
         for (int i = 0; i < current_nodes; i++) //considering edge inst->bestsol[i]->inst->bestsol[i+1]
         {
             edge e;
-            e.from = inst->bestsol[i];
-            e.to = inst->bestsol[i + 1];
+            e.from = inst->currsol[i];
+            e.to = inst->currsol[i + 1];
             //for all points not already considered
             for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->bestsol[j]
             {
                 //printf("\nconsidering edge %d -> %d against point %d", e.from, e.to, inst->bestsol[j]);
-                extra_cost = -(COST(e.from, e.to)) + COST(e.from, inst->bestsol[j]) + COST(inst->bestsol[j], e.to);
+                extra_cost = -(COST(e.from, e.to)) + COST(e.from, inst->currsol[j]) + COST(inst->currsol[j], e.to);
                 if (extra_cost < min_extra_cost)
                 {
                     /*printf("removed cost: %f", COST(e.from, e.to));
@@ -185,7 +185,7 @@ void extra_mileage_det(Instance* inst, em_start start)
             }
         }
         current_nodes++;
-        add_in_position(new_point_index, place, inst->bestsol, current_nodes+1);
+        add_in_position(new_point_index, place, inst->currsol, current_nodes+1);
         //DEBUG
         /*for (int i = 0; i < current_nodes + 1; i++)
             printf("%d ", inst->bestsol[i]);
@@ -250,6 +250,8 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     int current_nodes = n_starting;
     for (int i = 0; i < n; i++)
         inst->currsol[i] = i;
+    //BUG: STARTING POINTS[I] MUST BE GREQ THAN I OR IT LEADS TO UNFESIBLE SOLUTIONS
+    //TODO FIX
     inst->currsol[n] = starting_points[0];
     //set current tour
     for (int i = 0; i < n_starting; i++)
@@ -269,15 +271,15 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
         int place = -1, s_place = -1;
         int new_point_index = -1, s_new_point_index = -1;
         //for every edge in current tour
-        for (int i = 0; i < current_nodes; i++) //considering edge inst->bestsol[i]->inst->bestsol[i+1]
+        for (int i = 0; i < current_nodes; i++) //considering edge inst->currsol[i]->inst->currsol[i+1]
         {
             edge e;
             e.from = inst->currsol[i];
             e.to = inst->currsol[i + 1];
             //for all points not already considered
-            for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->bestsol[j]
+            for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->currsol[j]
             {
-                extra_cost = -COST(e.from, e.to) + COST(e.from, inst->bestsol[j]) + COST(inst->bestsol[j], e.to);
+                extra_cost = -COST(e.from, e.to) + COST(e.from, inst->currsol[j]) + COST(inst->currsol[j], e.to);
                 if (extra_cost < min_extra_cost)
                 {
                     s_min_extra_cost = min_extra_cost;
@@ -363,17 +365,17 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     //extra mileage loop
     int current_nodes = n_starting;
     for (int i = 0; i < n; i++)
-        inst->bestsol[i] = i;
+        inst->currsol[i] = i;
     if (starting_points) //!=NULL
-        inst->bestsol[n] = *starting_points;
+        inst->currsol[n] = *starting_points;
     else
-        print_error("%s: Starting points is NULL pointer", __LINE__);
+        print_error("%d: Starting points is NULL pointer", __LINE__);
     //set current tour
     for (int i = 0; i < n_starting; i++)
     {
-        swap(inst->bestsol, i, starting_points[i]);
+        swap(inst->currsol, i, starting_points[i]);
     }
-    swap(inst->bestsol, n_starting, n);
+    swap(inst->currsol, n_starting, n);
     //untill all nodes are added
     while (current_nodes < n)
     {
@@ -389,15 +391,15 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
         int place = -1, s_place = -1, t_place = -1;
         int new_point_index = -1, s_new_point_index = -1, t_new_point_index = -1;
         //for every edge in current tour
-        for (int i = 0; i < current_nodes; i++) //considering edge inst->bestsol[i]->inst->bestsol[i+1]
+        for (int i = 0; i < current_nodes; i++) //considering edge inst->currsol[i]->inst->currsol[i+1]
         {
             edge e;
-            e.from = inst->bestsol[i];
-            e.to = inst->bestsol[i + 1];
+            e.from = inst->currsol[i];
+            e.to = inst->currsol[i + 1];
             //for all points not already considered
-            for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->bestsol[j]
+            for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->currsol[j]
             {
-                extra_cost = -COST(e.from, e.to) + COST(e.from, inst->bestsol[j]) + COST(inst->bestsol[j], e.to);
+                extra_cost = -COST(e.from, e.to) + COST(e.from, inst->currsol[j]) + COST(inst->currsol[j], e.to);
                 if (extra_cost < min_extra_cost)
                 {
                     t_min_extra_cost = s_min_extra_cost;
@@ -429,11 +431,11 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
         }
         current_nodes++;
         if (second)
-            add_in_position(s_new_point_index, s_place, inst->bestsol, current_nodes + 1);
+            add_in_position(s_new_point_index, s_place, inst->currsol, current_nodes + 1);
         else if(third)
-            add_in_position(t_new_point_index, t_place, inst->bestsol, current_nodes + 1);
+            add_in_position(t_new_point_index, t_place, inst->currsol, current_nodes + 1);
         else
-            add_in_position(new_point_index, place, inst->bestsol, current_nodes + 1);
+            add_in_position(new_point_index, place, inst->currsol, current_nodes + 1);
         //DEBUG
         /*for (int i = 0; i < current_nodes + 1; i++)
             printf("%d ", inst->bestsol[i]);
@@ -443,6 +445,25 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
         printf("\n");*/
     }
     free(starting_points);
+}
+
+void nearest_neighbor(Instance* inst, nn_options* options)
+{
+    //check for call parameters
+    if (options->opt == NORM)
+        nearest_neighbor_det(inst, options->nn_starting_node);
+    else if (options->opt == GRASP_2)
+        nearest_neighbor_grasp2(inst, options->nn_starting_node, options->p1);
+    else if (options->opt == GRASP_3)
+        nearest_neighbor_grasp3(inst, options->nn_starting_node, options->p1, options->p2);
+    else
+        print_error("Wrong parameter for extra mileage algorithm");
+
+    //save the cost
+    inst->currcost = get_cost(inst, inst->currsol);
+
+    //save if solution found is better
+    save_if_best(inst);
 }
 
 //greedy NN given a starting point O(n^2)
@@ -515,7 +536,7 @@ int nearest_neighbor_allstart(Instance* inst)
     return best_start;
 }
 
-void nearest_neighbor_grasp(Instance* inst, int start, double p2) 
+void nearest_neighbor_grasp2(Instance* inst, int start, double p2) 
 {
     if (start < 0)
         print_error("Invalid choice of the start node");
@@ -581,11 +602,11 @@ void nearest_neighbor_grasp(Instance* inst, int start, double p2)
 }
 
 // grasp NN given a starting point and the 2 probabities
-void nearest_neighbor_grasp2(Instance* inst, int start, double p2, double p3) 
+void nearest_neighbor_grasp3(Instance* inst, int start, double p2, double p3) 
 {
     if (start < 0)
     {
-        print_error("%s, Invalid choice of the start node", __LINE__);
+        print_error("%d, Invalid choice of the start node", __LINE__);
     }
 
     int n = inst->nnodes;
@@ -763,7 +784,7 @@ void next_bestsol(Instance* inst, int it) {
 
     //check for tabu tenure validity
     if (inst->tabu_tenure < 0)
-        print_error("%s, Impossible value of tabu tenure", __LINE__);
+        print_error("%d, Impossible value of tabu tenure", __LINE__);
 
     //check for the best 2-opt move possible
     for (int i = 0; i < n - 2; i++) 
@@ -787,7 +808,7 @@ void next_bestsol(Instance* inst, int it) {
         }
     }
     if (best_delta == INF_DOUBLE)
-        print_error("%s, Error in finding another solution", __LINE__);
+        print_error("%d, Error in finding another solution", __LINE__);
 
     //put all 4 nodes swapped in tabu list
     inst->tabu[inst->currsol[best_arc]] = it;
@@ -815,7 +836,7 @@ void solve(Instance* inst, solve_options* options)
     }
     else if (options->alg == NN)
     {
-        nearest_neighbor(inst, 0); //TODO fix this
+        nearest_neighbor(inst, options->nn_opts); 
     }
     else if (options->alg == GEN)
     {
@@ -823,7 +844,7 @@ void solve(Instance* inst, solve_options* options)
         return;
     }
     else
-        print_error("%s, Error in setting algorithm options for solving", __LINE__);
+        print_error("%d, Error in setting algorithm options for solving", __LINE__);
 
     printf("starting to iterate");
     //iterate untill timelimit is exceeded
@@ -838,7 +859,6 @@ void solve(Instance* inst, solve_options* options)
     //plot best instance found
     //plot_generator(inst, inst->nnodes);
 }
-
 
 //plot cost of incumbent during solving (or cost in console but better to plot)
 //tabulate formatted output
@@ -965,7 +985,6 @@ void kick(Instance* inst, int* sol)
     free(randomEdges);
     free(solutionRearrenged);
 }
-
 
 int checkNonEqual(int* array, int tocheck, int length) {
     for (int i = 0; i < length; i++) {

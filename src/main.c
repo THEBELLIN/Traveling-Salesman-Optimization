@@ -9,13 +9,13 @@ int main(int argc, char** argv)
 	parse_args(&instance, argc, argv);
 	srand(instance.randomseed);
 	parse_TSPLIB(&instance);
-
+ 
 	//solve options
 	em_options oo = NORMAL;				//NORMAL, GRASP2(p), GRASP3(p1, p2)
 	oo.start = CONV_HULL;
 	solve_options o =
 	{
-		.alg = EM,
+		.alg = GEN,
 		.timelimit = 10, 
 		.em_opts = &oo
 	};

@@ -38,8 +38,17 @@ typedef struct
 
 typedef struct
 {
+	em_opt opt;
+	int nn_starting_node;
+	double p1;
+	double p2;
+}nn_options;
+
+typedef struct
+{
 	solver_id alg;
 	em_options* em_opts;
+	nn_options* nn_opts;
 	int timelimit;
 }solve_options;
 
@@ -50,10 +59,11 @@ void extra_mileage(Instance*, em_options*);
 void extra_mileage_det(Instance*, em_start);
 void extra_mileage_grasp2(Instance*, em_start, double);
 void extra_mileage_grasp3(Instance*, em_start, double, double);
-void nearest_neighbor_grasp2(Instance*, int, double, double);
-void nearest_neighbor_grasp(Instance*, int, double);
-int nearest_neighbor_allstart(Instance*);
+void nearest_neighbor(Instance*, em_options*);
 void nearest_neighbor_det(Instance*, int);
+void nearest_neighbor_grasp2(Instance*, int, double);
+void nearest_neighbor_grasp3(Instance*, int, double, double);
+int nearest_neighbor_allstart(Instance*);
 Point* convex_hull(Point*, int, int*);
 void nearest_neighbor_grasp_random(Instance*, int, double);
 void next_bestsol(Instance*, int);

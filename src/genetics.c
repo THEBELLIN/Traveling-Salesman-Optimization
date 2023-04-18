@@ -8,20 +8,25 @@ void genetic(Instance* inst)
 {
 	//first 1000 are population, 
 	individual* population = MALLOC(POP_SIZE + N_CHILDREN, individual); 
+	int added = 0;
 
-	//add currsol and bestsol to current population
-	population[0].genes = MALLOC(inst->nnodes + 1, int);
-	population[1].genes = MALLOC(inst->nnodes + 1, int);
-	for (int i = 0; i < inst->nnodes + 1; i++)
+	if (inst->currcost < INF_INT)
 	{
-		population[0].genes[i] = inst->currsol[i];
-		population[1].genes[i] = inst->bestsol[i];
+		//add currsol and bestsol to current population, if any
+		population[0].genes = MALLOC(inst->nnodes + 1, int);
+		population[1].genes = MALLOC(inst->nnodes + 1, int);
+		for (int i = 0; i < inst->nnodes + 1; i++)
+		{
+			population[0].genes[i] = inst->currsol[i];
+			population[1].genes[i] = inst->bestsol[i];
+		}
+		population[0].fitness = get_fitness(inst, population[0].genes);
+		population[1].fitness = get_fitness(inst, population[1].genes);
+		added = 2;
 	}
-	population[0].fitness = get_fitness(inst, population[0].genes);
-	population[1].fitness = get_fitness(inst, population[1].genes);
 
-	//populate 98 more at random
-	for (int i = 2; i < N_RAND; i++)
+	//populate 98 (or 100) more at random
+	for (int i = added; i < N_RAND; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
 		generate_random_tour(population[i].genes, inst->nnodes);
@@ -64,6 +69,7 @@ void genetic(Instance* inst)
 	int it = 0;
 	while (time(NULL) - inst->tstart < inst->time_limit)
 	{
+		printf("\niteration %d", it);
 		int* parents = MALLOC(N_PARENTS, int);
 		choose_parents(population, parents, N_PARENTS);
 		generate_children(inst, population, parents, N_PARENTS, N_CHILDREN, inst->nnodes);
@@ -261,7 +267,7 @@ void mutation(Instance* inst, individual* population, const int parent, const in
 individual* get_champion(individual* population, const int size)
 {
 	qsort(population, size, sizeof(individual), compareIndividual);
-	return &population[size - 1];
+	return population + (size - 1);	
 }
 
 void selection(individual* population, const int all_size, const int desired_size)
