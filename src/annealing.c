@@ -15,7 +15,7 @@ void simulated_annealing(Instance* inst, int time_limit) {
     memcpy(newsol, inst->bestsol, (n + 1) * sizeof(int));//in new sol bestsol
     while (time(NULL) - start_time < time_limit) {
         random_two_opt_move(newsol, inst);// swap two cities
-        double costDiff = calculateCost(inst, newsol) - costnewsol;
+        double costDiff = get_cost(inst, newsol) - costnewsol;
         //printf("  costDiff= %f  ", costDiff);
         double deltaz = costDiff / ((inst->bestcost) / n);
         // printf("  deltaz = %f  ", deltaz);

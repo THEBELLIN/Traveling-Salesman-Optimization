@@ -2,6 +2,10 @@
 #include "utility.h"
 #include "heuristics.h"
 
+#pragma comment(lib, "cplex2211.lib")
+#pragma comment(lib, "ilocplex.lib")
+
+
 int main(int argc, char** argv)
 {
 	Instance instance;

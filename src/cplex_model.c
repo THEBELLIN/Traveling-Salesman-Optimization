@@ -1,278 +1,138 @@
-#include <cplex.h>  
+#include "cplex_model.h"
 
-
-typedef struct {
-	//input data
-	int nnodes;
-	double* xcoord;
-	double* ycoord;
-	int integer_costs; 		// = 1 for integer costs (rounded distances), 0 otherwise
-
-	// parameters 
-	int model_type;
-	double timelimit;		// overall time limit, in sec.s
-	char input_file[1000];	// input file
-
-	//global data
-	double zbest;			// value of the best sol. available  
-} instance;
-
-void print_error(const char* err)
+int TSPopt(Instance* inst)
 {
-	printf("\n\n ERROR: %s \n\n", err);
-	fflush(NULL);
-	exit(1);
-}
 
-double dist(int i, int j, instance* inst)
-{
-	double dx = inst->xcoord[i] - inst->xcoord[j];
-	double dy = inst->ycoord[i] - inst->ycoord[j];
-	if (!inst->integer_costs) return sqrt(dx * dx + dy * dy);
-	int dis = sqrt(dx * dx + dy * dy) + 0.499999999; 					// nearest integer 
-	return dis + 0.0;
-}
-
-< other prototypes >
-
-
-int bender_loop(instance* inst) {
-	//SET UP THE MODEL
-	// open CPLEX model an enviroment CPLEX
+	// open CPLEX model
 	int error;
-	CPXENVptr env = CPXopenCPLEX(&error);// error un parametro in caso dia errore indietro
-	if (error) print_error("CPXopenCPLEX() error");
-	CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");// This block of code creates a new CPLEX problem object (i.e., a linear programming or mixed-integer programming model) within the CPLEX environment.
-	if (error) print_error("CPXcreateprob() error");
+	CPXENVptr env = CPXopenCPLEX(&error);
+	if (error) 
+	{
+		print_error("%d, CPXopenCPLEX() error", __LINE__);
+	}
+	CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");
+	if (error)
+	{
+		print_error("%d, CPXcreateprob() error", __LINE__);
+	}
 
-	build_model(inst, env, lp);// that builds the TSP optimization model and adds it to the CPLEX problem object lp
+	build_model(inst, env, lp);
 
 	// Cplex's parameter setting
 	CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_OFF);
-	if (VERBOSE >= 60) CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
-	CPXsetintparam(env, CPX_PARAM_RANDOMSEED, 123456);
-	CPXsetdblparam(env, CPX_PARAM_TILIM, 3600.0);
-	// ...
-
-	error = CPXmipopt(env, lp);//solves the TSP model using the MIP solver in CPLEX.
-	if (error)
+	if (inst->verbose > 1)
 	{
-		printf("CPX error code %d\n", error);
-		print_error("CPXmipopt() error");
+		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
 	}
-	// IN XSTAR I HAVE SOLUTION OF LP
-	int ncols = CPXgetnumcols(env, lp);
-	double* xstar = (double*)calloc(ncols, sizeof(double));
-	if (CPXgetx(env, lp, xstar, 0, ncols - 1)) print_error("CPXgetx() error");
-	int* succ = (int*)calloc(ncols, sizeof(int));
-	int* succ = (int*)calloc(ncols, sizeof(int));
-	int* ncomp = (int*)calloc(1, sizeof(int));
-	//buil_sol(xstar,inst,succ,comp,ncomp);// finds components and succssesors
-	while (1) {
-		error = CPXmipopt(env, lp);//solves the TSP model using the MIP solver in CPLEX.
-		if (CPXgetx(env, lp, xstar, 0, ncols - 1)) print_error("CPXgetx() error");
-		build_sol(xstar, inst, succ, comp, ncomp);// finds components and succssesors
-		if (ncomp == 1) break;
-		else {
-			for (int i = 1; i <= numcomp; i++) { // Connected components are numerated from 1
-				//sprintf(names, "SEC(%d)", ++rowscount);
-				// For each subtour we add the SEC constraints in one shot
-				status = ADD_SEC(inst, env, lp, i, comp, indexes, values, names);
-				if (status) { LOG_E("An error occurred adding SEC. Error code %d", status); }
-				save_lp(env, lp, inst->name);
-			}
-		}
-	}
+	CPXsetintparam(env, CPX_PARAM_RANDOMSEED, inst->randomseed);
+	CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit);
 
-
-
-}
-
-int ADD_SEC(instance* inst, int tour, int* comp, char* sense, int* indexes, double* values, double* rhs) {
-	int nnz = 0; // Number of variables to add in the constraint
-	int num_nodes = 0; // We need to know the number of nodes due the vincle |S| - 1
-	*sense = 'L'; // Preparing here sense in order that the caller of this function does not care about the underling constraints
-
-
-	for (int i = 0; i < inst->nnodes; i++) {
-		if (comp[i] != tour) continue;
-		n_nodes++;
-
-		for (int j = i + 1; j < inst->num_nodes; j++) {
-			if (comp[j] != tour) continue;
-			indexes[nnz] = xpos(i, j, inst->num_nodes);
-			values[nnz] = 1.0;
-			nnz++;
-		}
-	}
-
-	*rhs = num_nodes - 1; // |S| - 1
-
-	//int row_indices[1];
-	//row_indices[0] = CPXgetnumrows(inst->env, inst->lp);
-	beg = 0;
-	char* name[1];
-	name[0] = "SEC";
-	int status = CPXaddrows(inst->env, inst->lp, 0, 1, nnz, rhs, sense, &beg[0], indexes, values, NULL, &name[0]); // Add the constraint to the model
-	if (status) {
-		printf("Error: Failed to add SEC constraint to model.\n");
-		return status;
-	}
-
-	return 0;
-}
-
-
-/**************************************************************************************************************************/
-int TSPopt(instance* inst)
-/**************************************************************************************************************************/
-{
-
-	// open CPLEX model an enviroment CPLEX
-	int error;
-	CPXENVptr env = CPXopenCPLEX(&error);// error un parametro in caso dia errore indietro
-	if (error) print_error("CPXopenCPLEX() error");
-	CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");// This block of code creates a new CPLEX problem object (i.e., a linear programming or mixed-integer programming model) within the CPLEX environment.
-	if (error) print_error("CPXcreateprob() error");
-
-	build_model(inst, env, lp);// that builds the TSP optimization model and adds it to the CPLEX problem object lp
-
-	// Cplex's parameter setting
-	CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_OFF);
-	if (VERBOSE >= 60) CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
-	CPXsetintparam(env, CPX_PARAM_RANDOMSEED, 123456);
-	CPXsetdblparam(env, CPX_PARAM_TILIM, 3600.0);
-	// ...
-
-	error = CPXmipopt(env, lp);//solves the TSP model using the MIP solver in CPLEX.
-	if (error)
-	{
-		printf("CPX error code %d\n", error);
-		print_error("CPXmipopt() error");
-	}
-
-	// use the optimal solution found by CPLEX print edges that are 1
-
-	int ncols = CPXgetnumcols(env, lp);
-	double* xstar = (double*)calloc(ncols, sizeof(double));
-	if (CPXgetx(env, lp, xstar, 0, ncols - 1)) print_error("CPXgetx() error");
+	// use the optimal solution found by CPLEX
+	/*
+	
 	for (int i = 0; i < inst->nnodes; i++)
 	{
 		for (int j = i + 1; j < inst->nnodes; j++)
 		{
-			if (xstar[xpos(i, j, inst)] > 0.5) printf("  ... x(%3d,%3d) = 1\n", i + 1, j + 1);
+			if (xstar[xpos(i, j, inst)] > 0.5)
+			{
+				printf("  ... x(%3d,%3d) = 1\n", i + 1, j + 1);
+			}
 		}
 	}
-	free(xstar);
+	*/
+	benders_loop(inst, env, lp);
 
 	// free and close cplex model   
 	CPXfreeprob(env, &lp);
 	CPXcloseCPLEX(&env);
-
-	return 0; // or an appropriate nonzero error code
-
+	
+	return 0; 
 }
 
-/***************************************************************************************************************************/
-int xpos(int i, int j, instance* inst)      // to be verified                                           
-/***************************************************************************************************************************/
+int xpos(int i, int j, Instance* inst)                                           
 {
-	if (i == j) print_error(" i == j in xpos");
-	if (i > j) return xpos(j, i, inst);
-	int pos = i * inst->nnodes + j - ((i + 1) * (i + 2)) / 2;
+	if (i == j)
+	{
+		print_error("%d, i == j in xpos", __LINE__);
+	}
+	//i should be < than j
+	if (i > j)
+	{
+		return xpos(j, i, inst);
+	}
+	int pos = i * inst->nnodes + j - ((i + 1) * (i + 2)) / 2;  //triangular matrix position
 	return pos;
 }
 
-
-/***************************************************************************************************************************/
-void build_model(instance* inst, CPXENVptr env, CPXLPptr lp)
-/**************************************************************************************************************************/
+void build_model(Instance* inst, CPXENVptr env, CPXLPptr lp)
 {
-
-	double zero = 0.0;
+	double zero = 0;
 	char binary = 'B';
 
-	char** cname = (char**)calloc(1, sizeof(char*));		// (char **) required by cplex...
-	cname[0] = (char*)calloc(100, sizeof(char));
+	char** cname = CALLOC(1, char*);
+	cname[0] = CALLOC(100, char);
 
 	// add binary var.s x(i,j) for i < j  
-
 	for (int i = 0; i < inst->nnodes; i++)
 	{
 		for (int j = i + 1; j < inst->nnodes; j++)
 		{
-			sprintf(cname[0], "x(%d,%d)", i + 1, j + 1);  		// ... x(1,2), x(1,3) ....
-			double obj = dist(i, j, inst); // cost == distance   
+			sprintf(cname[0], "x(%d,%d)", i + 1, j + 1);  	
+			double obj = distance(&inst->points[i], &inst->points[j]); 
 			double lb = 0.0;
 			double ub = 1.0;
-			if (CPXnewcols(env, lp, 1, &obj, &lb, &ub, &binary, cname)) print_error(" wrong CPXnewcols on x var.s");
-			if (CPXgetnumcols(env, lp) - 1 != xpos(i, j, inst)) print_error(" wrong position for x var.s");
+			if (CPXnewcols(env, lp, 1, &obj, &lb, &ub, &binary, cname))
+			{
+				print_error("%d, wrong CPXnewcols on x var.s", __LINE__);
+			}
+			if (CPXgetnumcols(env, lp) - 1 != xpos(i, j, inst))
+			{
+				print_error("%d, wrong position for x var.s", __LINE__);
+			}
 		}
 	}
 
 	// add the degree constraints 
-
-	int* index = (int*)calloc(inst->nnodes, sizeof(int));
-	double* value = (double*)calloc(inst->nnodes, sizeof(double));
+	int* index = CALLOC(inst->nnodes, int);
+	double* value = CALLOC(inst->nnodes, double);
 
 	for (int h = 0; h < inst->nnodes; h++)  		// add the degree constraint on node h
 	{
-		double rhs = 2.0;
+		double rhs = 2;
 		char sense = 'E';                            // 'E' for equality constraint 
 		sprintf(cname[0], "degree(%d)", h + 1);
 		int nnz = 0;
 		for (int i = 0; i < inst->nnodes; i++)
 		{
-			if (i == h) continue;
+			if (i == h) 
+				continue;
 			index[nnz] = xpos(i, h, inst);
 			value[nnz] = 1.0;
 			nnz++;
 		}
 		int izero = 0;
-		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0])) print_error("CPXaddrows(): error 1");
+		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0]))
+		{
+			print_error("%d, CPXaddrows(): error 1", __LINE__);
+		}
 	}
 
 	free(value);
 	free(index);
-
 	free(cname[0]);
 	free(cname);
 
-	if (VERBOSE >= 100) CPXwriteprob(env, lp, "model.lp", NULL);
-
+	if (inst->verbose >= 2)
+	{
+		CPXwriteprob(env, lp, "model.lp", NULL);
+	}
 }
 
-#define DEBUG    // comment out to avoid debugging 
-#define EPS 1e-5
-
-/*********************************************************************************************************************************/
-void build_sol(const double* xstar, instance* inst, int* succ, int* comp, int* ncomp) // build succ() and comp() wrt xstar()...
-/*********************************************************************************************************************************/
+// build succ() and comp() wrt xstar()...
+void build_sol(const double* xstar, Instance* inst, int* succ, int* comp, int* ncomp) 
 {
-
-#ifdef DEBUG
-	int* degree = (int*)calloc(inst->nnodes, sizeof(int));
-	for (int i = 0; i < inst->nnodes; i++)
-	{
-		for (int j = i + 1; j < inst->nnodes; j++)
-		{
-			int k = xpos(i, j, inst);
-			if (fabs(xstar[k]) > EPS && fabs(xstar[k] - 1.0)) > EPS ) print_error(" wrong xstar in build_sol()");
-			if (xstar[k] > 0.5)
-			{
-				++degree[i];
-				++degree[j];
-			}
-		}
-	}
-	for (int i = 0; i < inst->nnodes; i++)
-	{
-		if (degree[i] != 2) print_error("wrong degree in build_sol()");
-	}
-	free(degree);
-#endif
-
-	* ncomp = 0;
+	*ncomp = 0;
 	for (int i = 0; i < inst->nnodes; i++)
 	{
 		succ[i] = -1;
@@ -281,7 +141,8 @@ void build_sol(const double* xstar, instance* inst, int* succ, int* comp, int* n
 
 	for (int start = 0; start < inst->nnodes; start++)
 	{
-		if (comp[start] >= 0) continue;  // node "start" was already visited, just skip it
+		if (comp[start] >= 0) 
+			continue;  // node "start" was already visited, just skip it
 
 		// a new component is found
 		(*ncomp)++;
@@ -303,83 +164,94 @@ void build_sol(const double* xstar, instance* inst, int* succ, int* comp, int* n
 			}
 		}
 		succ[i] = start;  // last arc to close the cycle
-
-		// go to the next component...
 	}
 }
 
-
-
-****LAZY CONTRAINTS IN THE INPUT MODEL****
-
-Ex: MZT formulation with directed - arc variables x_ij and x_ji-- > xpos_compact(i, j, inst)
-
-...
-
-int izero = 0;
-int index[3];
-double value[3];
-
-// add lazy constraints  1.0 * u_i - 1.0 * u_j + M * x_ij <= M - 1, for each arc (i,j) not touching node 0	
-double big_M = inst->nnodes - 1.0;
-double rhs = big_M - 1.0;
-char sense = 'L';
-int nnz = 3;
-for (int i = 1; i < inst->nnodes; i++) // excluding node 0
+double mip_value(CPXENVptr env, CPXLPptr lp)
 {
-	for (int j = 1; j < inst->nnodes; j++) // excluding node 0 
-	{
-		if (i == j) continue;
-		sprintf(cname[0], "u-consistency for arc (%d,%d)", i + 1, j + 1);
-		index[0] = upos(i, inst);
-		value[0] = 1.0;
-		index[1] = upos(j, inst);
-		value[1] = -1.0;
-		index[2] = xpos_compact(i, j, inst);
-		value[2] = big_M;
-		if (CPXaddlazyconstraints(env, lp, 1, nnz, &rhs, &sense, &izero, index, value, cname)) print_error("wrong CPXlazyconstraints() for u-consistency");
-	}
+	double zz;
+	if (CPXgetobjval(env, lp, &zz))
+		zz = CPX_INFBOUND;
+	return zz;
 }
 
-// add lazy constraints 1.0 * x_ij + 1.0 * x_ji <= 1, for each arc (i,j) with i < j
-rhs = 1.0;
-char sense = 'L';
-nnz = 2;
-for (int i = 0; i < inst->nnodes; i++)
+void mip_delete_all_mipstarts(CPXENVptr env, CPXLPptr lp)
 {
-	for (int j = i + 1; j < inst->nnodes; j++)
-	{
-		sprintf(cname[0], "SEC on node pair (%d,%d)", i + 1, j + 1);
-		index[0] = xpos_compact(i, j, inst);
-		value[0] = 1.0;
-		index[1] = xpos_compact(j, i, inst);
-		value[1] = 1.0;
-		if (CPXaddlazyconstraints(env, lp, 1, nnz, &rhs, &sense, &izero, index, value, cname)) print_error("wrong CPXlazyconstraints on 2-node SECs");
-	}
+	int nmipstart = CPXgetnummipstarts(env, lp);
+	if (nmipstart > 0 && CPXdelmipstarts(env, lp, 0, nmipstart - 1)) 
+		print_error("%d, CPXdelmipstarts error", __LINE__);
 }
 
-...
+int mip_solution_available(CPXENVptr env, CPXLPptr lp)
+{
+	double zz;
+	if (CPXgetobjval(env, lp, &zz)) 
+		return 0;
+	return 1;
+}
 
-*** SOME MAIN CPLEX'S PARAMETERS ***
+int mip_solved_to_optimality(CPXENVptr env, CPXLPptr lp)
+{
+	int lpstat = CPXgetstat(env, lp);
+	int solved = (lpstat == CPXMIP_OPTIMAL) || (lpstat == CPXMIP_OPTIMAL_INFEAS) ||	(lpstat == CPXMIP_OPTIMAL_TOL);
+	return solved;
+}
 
+int mip_infeasible(CPXENVptr env, CPXLPptr lp)
+{
+	int lpstat = CPXgetstat(env, lp);
+	int infeas = (lpstat == CPXMIP_INFEASIBLE);
+	return infeas;
+}
 
-// increased precision for big-M models
-CPXsetdblparam(env, CPX_PARAM_EPINT, 0.0);		// very important if big-M is present
-CPXsetdblparam(env, CPX_PARAM_EPRHS, 1e-9);
+void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
+{
+	//time elapsed
+	double time_elapsed = time(NULL) - inst->tstart; 
 
-CPXsetintparam(env, CPX_PARAM_MIPDISPLAY, 4);
-if (VERBOSE >= 60) CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
-CPXsetintparam(env, CPX_PARAM_RANDOMSEED, 123456);
+	//allocate mamory for results
+	int* succ = MALLOC(inst->nnodes, int);
+	int* comp = MALLOC(inst->nnodes, int);
 
-CPXsetdblparam(env, CPX_PARAM_TILIM, CPX_INFBOUND + 0.0);
+	//Bender's loop
+	while (time_elapsed < inst->time_limit)
+	{
+		//set time limit
+		CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit - time_elapsed);
 
-CPXsetintparam(env, CPX_PARAM_NODELIM, 0); 		// abort Cplex after the root node
-CPXsetintparam(env, CPX_PARAM_INTSOLLIM, 1);	// abort Cplex after the first incumbent update
+		//solve the problem
+		int error = CPXmipopt(env, lp);
+		if (error)
+		{
+			printf("CPX error code %d\n", error);
+			print_error("%d, CPXmipopt() error", __LINE__);
+		}
 
-CPXsetdblparam(env, CPX_PARAM_EPGAP, 1e-4);  	// abort Cplex when gap below 0.01%	 
+		//get results
+		int ncols = CPXgetnumcols(env, lp);
+		int ncomp;
+		double* xstar = CALLOC(ncols, double);
+		if (CPXgetx(env, lp, xstar, 0, ncols - 1))
+		{
+			print_error("%d, CPXgetx() error", __LINE__);
+		}
+		build_sol(xstar, inst, succ, comp, &ncomp);
+		
+		//check number of connected components
+		if (ncomp > 1)
+		{
+			add_SEC(inst, comp, env, lp);
+		}
+		time_elapsed = time(NULL) - inst->tstart;
+		free(xstar);
+	}
 
+	//free
+	free(comp);
+	free(succ);
+}
 
+void add_SEC(Instance* inst, int* comp, CPXENVptr env, CPXLPptr lp)
+{
 
-***instance TESTBED for exact codes :
-
-all TSPlib instances with n <= 500
+}
