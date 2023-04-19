@@ -20,7 +20,7 @@ int TSPopt(Instance* inst)
 
 	// Cplex's parameter setting
 	CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_OFF);
-	if (inst->verbose > 1)
+	if (inst->verbose > 10)
 	{
 		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
 	}
@@ -42,11 +42,17 @@ int TSPopt(Instance* inst)
 	}
 	*/
 	benders_loop(inst, env, lp);
+	//just print one line with lb at every iteration
 
 	// free and close cplex model   
 	CPXfreeprob(env, &lp);
 	CPXcloseCPLEX(&env);
 	
+	if (inst->verbose >= 0)
+	{
+		CPXwriteprob(env, lp, "../../Traveling-Salesman-Optimization/data/model.lp", NULL);
+	}
+
 	return 0; 
 }
 
@@ -123,10 +129,6 @@ void build_model(Instance* inst, CPXENVptr env, CPXLPptr lp)
 	free(cname[0]);
 	free(cname);
 
-	if (inst->verbose >= 2)
-	{
-		CPXwriteprob(env, lp, "../../Traveling-Salesman-Optimization/data/model.lp", NULL);
-	}
 }
 
 // build succ() and comp() wrt xstar()...
@@ -213,7 +215,7 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 	int* succ = MALLOC(inst->nnodes, int);
 	int* comp = MALLOC(inst->nnodes, int);
 
-	//Bender's loop
+	//Benders' loop
 	while (time_elapsed < inst->time_limit)
 	{
 		//set time limit
@@ -242,8 +244,6 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 		{
 			add_SEC(inst, ncomp, comp, env, lp);
 		}
-		int nrows = CPXgetnumrows(env, lp);
-		printf("\nnrows: %d\n", nrows);
 		time_elapsed = time(NULL) - inst->tstart;
 		free(xstar);
 	}
@@ -278,7 +278,7 @@ void add_SEC(Instance* inst, const int ncomp, int* comp, CPXENVptr env, CPXLPptr
 
 		char sense = 'L';                            
 		int nnz = 0;
-		sprintf(cname[0], "SEC_component(%d)", c);
+		sprintf(cname[0], "SEC(%d)", c);	//TODO fix progressive number
 		for (int i = 0; i < inst->nnodes - 1; i++)
 		{
 			if (comp[i] != c)
@@ -298,13 +298,6 @@ void add_SEC(Instance* inst, const int ncomp, int* comp, CPXENVptr env, CPXLPptr
 			print_error("%d, CPXaddrows(): error 1", __LINE__);
 		}
 	}
-
-	/*
-	if (inst->verbose >= 5)
-	{
-		CPXwriteprob(env, lp, "model.lp", NULL);
-	}
-	*/
 
 	//free
 	free(index);
