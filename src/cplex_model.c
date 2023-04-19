@@ -125,7 +125,7 @@ void build_model(Instance* inst, CPXENVptr env, CPXLPptr lp)
 
 	if (inst->verbose >= 2)
 	{
-		CPXwriteprob(env, lp, "model.lp", NULL);
+		CPXwriteprob(env, lp, "../../Traveling-Salesman-Optimization/data/model.lp", NULL);
 	}
 }
 
@@ -240,8 +240,10 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 		//check number of connected components
 		if (ncomp > 1)
 		{
-			add_SEC(inst, comp, env, lp);
+			add_SEC(inst, ncomp, comp, env, lp);
 		}
+		int nrows = CPXgetnumrows(env, lp);
+		printf("\nnrows: %d\n", nrows);
 		time_elapsed = time(NULL) - inst->tstart;
 		free(xstar);
 	}
@@ -251,7 +253,62 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 	free(succ);
 }
 
-void add_SEC(Instance* inst, int* comp, CPXENVptr env, CPXLPptr lp)
+void add_SEC(Instance* inst, const int ncomp, int* comp, CPXENVptr env, CPXLPptr lp)
 {
+	// add the degree constraints 
+	int ncols = CPXgetnumcols(env, lp);
+	int* index = CALLOC(ncols, int);
+	double* value = CALLOC(ncols, double);
+	char** cname = CALLOC(1, char*);
+	cname[0] = CALLOC(100, char);
 
+	//for every component
+	for (int c = 1; c <= ncomp; c++)  		
+	{
+		double rhs = 0;
+		for (int i = 0; i < inst->nnodes; i++)
+		{
+			if (comp[i] == c)
+			{
+				rhs++;
+			}
+		}
+		//rhs to |S|-1
+		rhs--;
+
+		char sense = 'L';                            
+		int nnz = 0;
+		sprintf(cname[0], "SEC_component(%d)", c);
+		for (int i = 0; i < inst->nnodes - 1; i++)
+		{
+			if (comp[i] != c)
+				continue;
+			for (int j = i + 1; j < inst->nnodes; j++)
+			{
+				if (comp[j] != c)
+					continue;
+				index[nnz] = xpos(i, j, inst);
+				value[nnz] = 1;
+				nnz++;
+			}
+		}
+		int izero = 0;
+		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0]))
+		{
+			print_error("%d, CPXaddrows(): error 1", __LINE__);
+		}
+	}
+
+	/*
+	if (inst->verbose >= 5)
+	{
+		CPXwriteprob(env, lp, "model.lp", NULL);
+	}
+	*/
+
+	//free
+	free(index);
+	free(value);
+	free(cname[0]);
+	free(cname);
 }

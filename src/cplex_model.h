@@ -17,5 +17,5 @@ int mip_solution_available(CPXENVptr, CPXLPptr);
 int mip_solved_to_optimality(CPXENVptr, CPXLPptr);
 int mip_infeasible(CPXENVptr, CPXLPptr);
 void benders_loop(Instance*, CPXENVptr, CPXLPptr);
-void add_SEC(Instance*, int*, CPXENVptr, CPXLPptr);
+void add_SEC(Instance*, const int, int*, CPXENVptr, CPXLPptr);
 #endif

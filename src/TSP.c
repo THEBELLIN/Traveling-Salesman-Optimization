@@ -73,6 +73,11 @@ void parse_args(Instance* inst, int argc, char** argv)
 			inst->tabu_tenure = atoi(argv[++i]);
 			continue;
 		}
+		if (strncmp(argv[i], "-time", 5) == 0) //time limit
+		{
+			inst->time_limit = atoi(argv[++i]);
+			continue;
+		}
 	}
 }
 
