@@ -12,5 +12,5 @@
 //================functions=================
 void hard_fixing(Instance*, double, double);
 void add_mip_start(Instance*, CPXENVptr, CPXLPptr);
-
+void benders_loop2(Instance*, CPXENVptr, CPXLPptr);
 #endif

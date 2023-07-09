@@ -77,5 +77,7 @@ Instance* generate_test_bed(int, int, int);
 double get_cost(Instance*, int*);
 void save_if_best(Instance*);
 void file_perf_prof(int, int, int);
+void sol_to_tsp(int*, double*, Instance*);
+void transform_in_perm_and_save(int*, Instance*);
 
 #endif

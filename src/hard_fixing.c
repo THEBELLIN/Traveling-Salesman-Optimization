@@ -65,7 +65,7 @@ void hard_fixing(Instance* inst, double percentage, double timelimit) {
 			CPXsetdblparam(env, CPX_PARAM_TILIM, time_per_call);
 		inst->tstart = time(NULL);
 		//CALL CALLBACK FUNCTION TO FIND AN OPTIMIZED SOLUTION solition saved in bestsol if better than the previous solution found
-		benders_loop(inst, env, lp);
+		benders_loop2(inst, env, lp);
 		//unfix all previous edges
 		double zero = 0.0;
 		for (int i = 0; i < inst->ncols; i++) {
@@ -98,4 +98,54 @@ void add_mip_start(Instance* inst, CPXENVptr env, CPXLPptr lp) {
 	free(ind);
 	free(xheu);
 
+}
+// same as benders but saves the best solution in bestsol
+void benders_loop2(Instance* inst, CPXENVptr env, CPXLPptr lp)
+{
+	//time elapsed
+	double time_elapsed = time(NULL) - inst->tstart;
+	//allocate mamory for results
+	int* succ = MALLOC(inst->nnodes, int);
+	int* comp = MALLOC(inst->nnodes, int);
+	int ncomp;
+	//Benders' loop
+	while (time_elapsed < inst->time_limit)
+	{
+		//set time limit
+		CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit - time_elapsed);
+
+		//solve the problem
+		int error = CPXmipopt(env, lp);
+		if (error)
+		{
+			printf("CPX error code %d\n", error);
+			print_error("%d, CPXmipopt() error", __LINE__);
+		}
+
+		//get results
+		int ncols = CPXgetnumcols(env, lp);
+
+		double* xstar = CALLOC(ncols, double);
+		if (CPXgetx(env, lp, xstar, 0, ncols - 1))
+		{
+			print_error("%d, CPXgetx() error", __LINE__);
+		}
+		build_sol(xstar, inst, succ, comp, &ncomp);
+
+		//check number of connected components
+		if (ncomp > 1)
+		{
+			add_SEC(inst, ncomp, comp, env, lp);
+		}
+		time_elapsed = time(NULL) - inst->tstart;
+		free(xstar);
+	}
+	if (ncomp == 1 && inst->bestcost > mip_value(env, lp)) {
+		inst->bestcost = mip_value(env, lp);
+		transform_in_perm_and_save(succ, inst);
+		printf("Updated ");
+	}
+	//free
+	free(comp);
+	free(succ);
 }

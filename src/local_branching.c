@@ -80,7 +80,7 @@ void local_branching(Instance* inst, double timelimit) {
 			CPXsetdblparam(env, CPX_PARAM_TILIM, time_per_call);
 		inst->tstart = time(NULL);
 		//CALL CALLBACK FUNCTION TO FIND AN OPTIMIZED SOLUTION solition saved in bestsol if better than the previous solution found
-		benders_loop(inst, env, lp);
+		benders_loop2(inst, env, lp);
 		//remove the local branching constraint added
 		if (CPXdelrows(env, lp, nrows, nrows)) print_error("error in deleating a constraint");
 		printf("Solution at time %f has cost %f\n", time(NULL) - start, inst->bestcost);
