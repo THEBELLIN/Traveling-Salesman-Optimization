@@ -512,6 +512,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 		succ_to_xheu(inst, succ, xheu);
 		for (int j = 0; j < inst->ncols; j++) 
 			ind[j] = j;
+		//TODO maybe add only if it's better than incumbent
 		if (CPXcallbackpostheursoln(context, inst->ncols, ind, xheu, objheu, CPXCALLBACKSOLUTION_NOCHECK)) 
 			print_error("CPXcallbackpostheursoln() error");
 		free(ind); 
