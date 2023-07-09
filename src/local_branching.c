@@ -53,7 +53,6 @@ void local_branching(Instance* inst, double timelimit) {
 
 
 	//while cycle untill i have time
-	int iter = 0;
 	while (time(NULL) < start + timelimit) {
 		// post a solution
 		add_mip_start(inst, env, lp, inst->bestsol);

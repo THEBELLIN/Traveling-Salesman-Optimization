@@ -41,7 +41,6 @@ void hard_fixing(Instance* inst, double percentage, double timelimit) {
 	//----------------------
 
 	//while cycle untill i have time
-	int iter = 0;
 	while (time(NULL) < start + timelimit) {
 		//add the best soultion found as a start to cplex
 		add_mip_start(inst, env, lp, inst->bestsol);
@@ -73,7 +72,6 @@ void hard_fixing(Instance* inst, double percentage, double timelimit) {
 			if (CPXchgbds(env, lp, 1, &pos, &lb, &zero))
 				print_error("error in changing the bound");
 		}
-		iter++;
 		printf("Solution at time %f has cost %f\n", time(NULL) - start, inst->bestcost);
 	}// while
 	// close enviroment 
