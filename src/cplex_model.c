@@ -504,17 +504,20 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 			}
 
 		}
-		//TODO posting solution with patching
+		 
 		double objheu = patching(inst, succ, comp, ncomp);
 
-		//TODO convert succ to xheu
 		int* ind = (int*)malloc(inst->ncols * sizeof(int));
-		for (int j = 0; j < inst->ncols; j++) ind[j] = j;
+		double* xheu = (double*)calloc(inst->ncols, sizeof(double));  // all zeros, initially
+		succ_to_xheu(inst, succ, xheu);
+		for (int j = 0; j < inst->ncols; j++) 
+			ind[j] = j;
 		if (CPXcallbackpostheursoln(context, inst->ncols, ind, xheu, objheu, CPXCALLBACKSOLUTION_NOCHECK)) 
 			print_error("CPXcallbackpostheursoln() error");
 		free(ind); 
 
 		//free allocated memory
+		free(xheu);
 		free(index); 
 		free(value); 
 		free(cname[0]); 
@@ -538,5 +541,8 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 	return 0; 
 } 
 
-//TODO function to convert succ solution to xheu solution
-//void succ_to_xheu()
+void succ_to_xheu(Instance* inst, int* succ, double* xheu)
+{
+	for (int i = 0; i < inst->nnodes; i++) 
+		xheu[xpos(i, succ[i], inst)] = 1.0;
+}

@@ -22,4 +22,5 @@ void get_SEC(Instance*, const int, int*, int*, double*, char**, int*, char*, int
 double patching(Instance*, int, int*, int*);
 void callback_solution(Instance*, CPXENVptr, CPXLPptr);
 static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr, CPXLONG, void*);
+void succ_to_xheu(Instance*, int*, double*);
 #endif
