@@ -14,6 +14,7 @@ int main(int argc, char** argv)
 	parse_args(&instance, argc, argv);
 	srand(instance.randomseed);
 	parse_TSPLIB(&instance);
+	initialize_cost(&instance);
 	
 	/*
 	//solve options

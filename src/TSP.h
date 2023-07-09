@@ -39,7 +39,8 @@ typedef struct
 	int nnodes;
 	double* cost;
 	solver_id id;
-	double p1, p2;
+	double p1, p2; //probabilities for GRASP
+	int ncols; //ncols of CPLEX model
 
 	char inputfile[1000];
 	char outputfile[1000];

@@ -18,4 +18,8 @@ int mip_solved_to_optimality(CPXENVptr, CPXLPptr);
 int mip_infeasible(CPXENVptr, CPXLPptr);
 void benders_loop(Instance*, CPXENVptr, CPXLPptr);
 void add_SEC(Instance*, const int, int*, CPXENVptr, CPXLPptr);
+void get_SEC(Instance*, const int, int*, int*, double*, char**, int*, char*, int*);
+double patching(Instance*, int, int*, int*);
+void callback_solution(Instance*, CPXENVptr, CPXLPptr);
+static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr, CPXLONG, void*);
 #endif
