@@ -6,6 +6,14 @@
 #include "utility.h"
 #include "heuristics.h"
 
+//==================structs=================
+typedef struct
+{
+	CPXCALLBACKCONTEXTptr context;
+	Instance* inst;
+
+}relaxation_callback_params;
+
 //================functions=================
 int TSPopt(Instance*);
 int xpos(int, int, Instance*);
@@ -23,4 +31,6 @@ double patching(Instance*, int, int*, int*);
 void callback_solution(Instance*, CPXENVptr, CPXLPptr);
 static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr, CPXLONG, void*);
 void succ_to_xheu(Instance*, int*, double*);
+static int violated_cuts_callback(double, int, int*, void*);
+static int add_SEC_cuts_fractional(Instance*, CPXCALLBACKCONTEXTptr, int, int*, int*, double*);
 #endif

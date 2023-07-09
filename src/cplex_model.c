@@ -1,4 +1,5 @@
 #include "cplex_model.h"
+#include "mincut.h"
 
 int TSPopt(Instance* inst)
 {
@@ -523,7 +524,6 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 		free(value); 
 		free(cname[0]); 
 		free(cname); 
-		free(xstar);
 	}
 
 	//check if we have a fractional solution -- USER CUT
@@ -535,9 +535,75 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 		int local = 0;
 		int purgeable = CPX_USECUT_FILTER;
 
-		//TODO fractional cuts
-		//CPXcallbackaddusercuts(context, 1, nnz, &rhs, &sense, &izero, cutind, cutval, &purgeable, &local)
+		int numcomps = 0; 
+		int* elist = MALLOC(2 * inst->ncols, int); // elist contains each pair of vertex such as (1,2), (1,3), (1,4), (2, 3), (2,4), (3,4) so in list becomes: 1,2,1,3,1,4,2,3,2,4,3,4
+		int* compscount = NULL; 
+		int* comps = NULL; 
+		int k = 0; 
+
+		int num_edges = 0; 
+		for (int i = 0; i < inst->nnodes; i++) 
+		{
+			for (int j = i + 1; j < inst->nnodes; j++) 
+			{
+				elist[k++] = i; 
+				elist[k++] = j; 
+				num_edges++; 
+			}
+		}
+
+		// Checking whether or not the graph is connected with the fractional solution.
+		if (CCcut_connect_components(inst->nnodes, num_edges, elist, xstar, &numcomps, &compscount, &comps))  
+		{
+			print_error("%d, CCcut_connect_components() error ", __LINE__);
+		}
+
+		if (numcomps == 1) 
+		{
+			relaxation_callback_params params = { .context = context, .inst = inst };
+			// At this point we have a connected graph. This graph could not be a "tsp". We interpret the fractional
+			// solution as capacity of a cut. A cut of a graph G is composed by S and T = V - S where V is the nodes set.
+			// The capacity of the cut is the sum of all ingoing and outgoing edges of the cut. Since we have a TSP,
+			// we want that for each cut, we have a capacity of 2 (i.e. one ingoing edge and one outgoing edge).
+			// So we want to seek the cuts which don't have a capacity of 2. The cuts with capacity < 2 violates the 
+			// constraints and we are going to add SEC to them.
+			// NB: We use cutoff as 2.0 - EPS for numerical stability due the fractional values we obtain in the solution. 
+			if (CCcut_violated_cuts(inst->nnodes, inst->ncols, elist, xstar, 2.0 - EPSILON, violated_cuts_callback, &params)) 
+			{ 
+				print_error("%d, CCcut_violated_cuts() error ", __LINE__);
+			}
+		}
+		else //ncomps > 1
+		{			
+			int startindex = 0;
+
+			int* components = MALLOC(inst->nnodes, int);
+
+			// Transforming the concorde's component format into our component format in order to use our addSEC function
+			for (int subtour = 0; subtour < numcomps; subtour++) 
+			{
+				for (int i = startindex; i < startindex + compscount[subtour]; i++) 
+				{
+					int index = comps[i];
+					components[index] = subtour + 1;
+				}
+				startindex += compscount[subtour];
+			}
+
+			int* indexes = MALLOC(inst->ncols, int);
+			double* values = MALLOC(inst->ncols, double);
+			for (int subtour = 1; subtour <= numcomps; subtour++) 
+			{
+				// For each subtour we add the constraints in one shot
+				add_SEC_cuts_fractional(inst, context, subtour, components, indexes, values); 
+			}
+			free(indexes); 
+			free(values); 
+			free(components);
+		}
 	}
+
+	free(xstar); 
 
 	return 0; 
 } 
@@ -546,4 +612,76 @@ void succ_to_xheu(Instance* inst, int* succ, double* xheu)
 {
 	for (int i = 0; i < inst->nnodes; i++) 
 		xheu[xpos(i, succ[i], inst)] = 1.0;
+}
+
+static int violated_cuts_callback(double cutval, int num_nodes, int* members, void* param) {
+	//LOG_D("Violated cuts callback");
+	relaxation_callback_params* params = (relaxation_callback_params*)param;
+	Instance* inst = params->inst; 
+	CPXCALLBACKCONTEXTptr context = params->context;
+	
+	double rhs = num_nodes - 1;
+	char sense = 'L';
+	int matbeg = 0;
+	int num_edges = num_nodes * (num_nodes - 1) / 2;
+	
+	double* values = MALLOC(num_edges, double);
+	int* edges = MALLOC(num_edges, int);
+	int k = 0;
+	for (int i = 0; i < num_nodes; i++) 
+	{
+		for (int j = 0; j < num_nodes; j++) 
+		{
+			if (members[i] >= members[j])  
+				continue;			// undirected graph. If the node in index i is greated than the node in index j, we skip since (i,j) = (j,i)
+			edges[k] = xpos(members[i], members[j], inst);
+			values[k] = 1.0;
+			k++;
+		}
+	}
+	int purgeable = CPX_USECUT_FILTER;
+	int local = 0; 
+	CPXcallbackaddusercuts(context, 1, num_edges, &rhs, &sense, &matbeg, edges, values, &purgeable, &local); 
+	free(edges);
+	free(values); 
+	return 0;
+}
+
+static int add_SEC_cuts_fractional(Instance* inst, CPXCALLBACKCONTEXTptr context, int current_tour, int* comp, int* indexes, double* values) 
+{
+	double rhs;
+	char sense;
+	int matbeg = 0; // Contains the index of the beginning column. In this case we add 1 row at a time so no need for an array
+	int purgeable = CPX_USECUT_FILTER;
+	int local = 0;
+	int nnz = prepare_SEC(inst, current_tour, comp, &sense, indexes, values, &rhs);
+	return CPXcallbackaddusercuts(context, 1, nnz, &rhs, &sense, &matbeg, indexes, values, &purgeable, &local); // add one violated usercut    
+}
+
+//basically the same as get_SEC but return nnz
+int prepare_SEC(Instance* inst, int tour, int* comp, char* sense, int* indexes, double* values, double* rhs) 
+{
+	int nnz = 0; // Number of variables to add in the constraint
+	int num_nodes = 0; // We need to know the number of nodes due the vincle |S| - 1
+	*sense = 'L'; // Preparing here sense in order that the caller of this function does not care about the underling constraints
+
+	for (int i = 0; i < inst->nnodes; i++) 
+	{
+		if (comp[i] != tour) 
+			continue;
+		num_nodes++;
+
+		for (int j = i + 1; j < inst->nnodes; j++) 
+		{
+			if (comp[j] != tour) 
+				continue;
+			indexes[nnz] = xpos(i, j, inst);
+			values[nnz] = 1.0;
+			nnz++;
+		}
+	}
+
+	*rhs = num_nodes - 1; // |S| - 1
+
+	return nnz;
 }
