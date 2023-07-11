@@ -391,7 +391,7 @@ double patching(Instance* inst, int ncomp, int* comp, int* succ)
 		do
 		{
 			//consider the two edges (a, succ[a]) and (b, succ[b])
-			edge e1, e2;
+			myedge e1, e2;
 			e1.from = node_a;
 			e1.to = succ[node_a];
 			do

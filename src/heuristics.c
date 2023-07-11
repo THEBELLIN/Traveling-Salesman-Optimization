@@ -165,7 +165,7 @@ void extra_mileage_det(Instance* inst, em_start start)
         //for every edge in current tour
         for (int i = 0; i < current_nodes; i++) //considering edge inst->bestsol[i]->inst->bestsol[i+1]
         {
-            edge e;
+            myedge e;
             e.from = inst->currsol[i];
             e.to = inst->currsol[i + 1];
             //for all points not already considered
@@ -273,7 +273,7 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
         //for every edge in current tour
         for (int i = 0; i < current_nodes; i++) //considering edge inst->currsol[i]->inst->currsol[i+1]
         {
-            edge e;
+            myedge e;
             e.from = inst->currsol[i];
             e.to = inst->currsol[i + 1];
             //for all points not already considered
@@ -393,7 +393,7 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
         //for every edge in current tour
         for (int i = 0; i < current_nodes; i++) //considering edge inst->currsol[i]->inst->currsol[i+1]
         {
-            edge e;
+            myedge e;
             e.from = inst->currsol[i];
             e.to = inst->currsol[i + 1];
             //for all points not already considered

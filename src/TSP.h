@@ -31,7 +31,7 @@ typedef struct
 {
 	int from;
 	int to;
-}edge;
+}myedge;
 
 typedef struct
 {
