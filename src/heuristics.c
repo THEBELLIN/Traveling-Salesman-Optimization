@@ -248,17 +248,24 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
 
     //extra mileage loop
     int current_nodes = n_starting;
-    for (int i = 0; i < n; i++)
-        inst->currsol[i] = i;
-    //BUG: STARTING POINTS[I] MUST BE GREQ THAN I OR IT LEADS TO UNFESIBLE SOLUTIONS
-    //TODO FIX
-    inst->currsol[n] = starting_points[0];
-    //set current tour
+    int* utilized = CALLOC(n, int);
+    //set the initial points in current solution
     for (int i = 0; i < n_starting; i++)
     {
-        swap(inst->currsol, i, starting_points[i]);
+        inst->currsol[i] = starting_points[i];
+        utilized[starting_points[i]] = 1;
     }
-    swap(inst->currsol, n_starting, n);
+    inst->currsol[n_starting] = starting_points[0];
+    //set remaining points
+    int k = 0;
+    for (int i = n_starting + 1; i < n; i++)
+    {
+        while (utilized[k] == 1) 
+			k++; 
+		inst->currsol[i] = k; 
+		utilized[k] = 1; 
+    }
+    free(utilized);
     //untill all nodes are added
     while (current_nodes < n)
     {
