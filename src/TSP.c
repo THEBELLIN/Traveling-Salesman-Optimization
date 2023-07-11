@@ -339,3 +339,23 @@ void file_perf_prof(int n_instances, int n_points, int seed) {
 		fprintf(out, "%f\n", set[i].bestcost);
 	}
 }
+
+void sol_to_tsp(int* sol, double* cplex, Instance* inst) {
+	for (int i = 0; i < inst->ncols; i++) {
+		cplex[i] = 0.0;
+	}
+	for (int i = 0; i < inst->nnodes; i++) {
+		cplex[xpos(sol[i], sol[i + 1], inst)] = 1.0;
+	}
+
+}
+// works
+// transforms a solution in the format of successors in a permutation and saves it in best sol
+void transform_in_perm_and_save(int* succ, Instance* inst) {
+	inst->bestsol[0] = 0;
+	int curr = 0;
+	for (int i = 0; i < inst->nnodes; i++) {
+		inst->bestsol[i + 1] = succ[curr];
+		curr = succ[curr];
+	}
+}
