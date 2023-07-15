@@ -1,6 +1,8 @@
 #include "local_branching.h"
 
-void local_branching(Instance* inst, double timelimit) {
+void local_branching(Instance* inst) 
+{
+	double timelimit = inst->time_limit;
 	// define the fraction of time to spend for every call
 	double time_per_call = timelimit / 10.0;
 	double start = time(NULL);

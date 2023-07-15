@@ -1,6 +1,9 @@
 #include "hard_fixing.h"
 
-void hard_fixing(Instance* inst, double percentage, double timelimit) {
+void hard_fixing(Instance* inst) 
+{
+	double percentage = inst->solver.p1;
+	double timelimit = inst->time_limit;
 	// define the fraction of time to spend for every call
 	double time_per_call = timelimit / 10.0;
 	double start = time(NULL);

@@ -15,11 +15,27 @@ typedef enum
 	NN,
 	NN_GRASP2,
 	NN_GRASP3,
-	EM,
-	EM_GRASP2,
-	EM_GRASP3,
-	GEN
+	EM,			//always select the best option at each step -> deterministic	
+	EM_GRASP2,	//use the second best option with probability 1-p
+	EM_GRASP3,	//use the 1st option with probability p1, the 2nd with p2, 3rd with 1-p1-p2
+	GEN, 
+	VNS, 
+	SIMANN, 
+	TABU,
+	CPLEX_BENDERS, 
+	CPLEX_CALLBACK,
+	LOCAL_BRANCHING,
+	HARD_FIXING
 }solver_id;
+
+//option to select the method for extra mileage algorithm  start
+typedef enum
+{
+	RAND,		//select 2 nodes at random for the strating set
+	MAX_DIST,	//select the 2 most distant nodes for the starting set
+	CONV_HULL	//start with the convex hull
+}em_start;
+
 //===============structs===============
 typedef struct
 {
@@ -35,11 +51,17 @@ typedef struct
 
 typedef struct
 {
+	solver_id id;
+	double p1, p2; //probabilities for GRASP
+	em_start start;
+}solver;
+
+typedef struct
+{
 	Point* points;
 	int nnodes;
 	double* cost;
-	solver_id id;
-	double p1, p2; //probabilities for GRASP
+	solver solver;
 	int ncols; //ncols of CPLEX model
 
 	char inputfile[1000];
@@ -79,5 +101,6 @@ void save_if_best(Instance*);
 void file_perf_prof(int, int, int);
 void sol_to_tsp(int*, double*, Instance*);
 void transform_in_perm_and_save(int*, Instance*);
+void solve(Instance*); 
 
 #endif

@@ -48,13 +48,11 @@ void genetic(Instance* inst)
 	for (int i = N_RAND + N_NN; i < POP_SIZE; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
-		em_options o = {
-			.start = RAND,
-			.opt = GRASP_2,
-			.p1 = 0.1,
-			.p2 = 0
-		};
-		extra_mileage(inst, &o);
+		inst->solver.id = EM_GRASP2;
+		inst->solver.start = RAND;
+		inst->solver.p1 = 0.1;
+		inst->solver.p2 = 0;
+		extra_mileage(inst);
 		copy_array(inst->currsol, population[i].genes, inst->nnodes + 1);
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}

@@ -1,7 +1,7 @@
 #ifndef H_LOCAL_BRANCHING
 #define H_LOCAL_BRANCHING
 
-#include <ilcplex/cplex.h>
+#include <cplex.h>
 #include "TSP.h"
 #include "utility.h"
 #include "heuristics.h"
@@ -11,5 +11,5 @@
 
 
 //================functions=================
-void local_branching(Instance*, double);
+void local_branching(Instance*);
 #endif

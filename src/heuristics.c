@@ -76,15 +76,15 @@ int* points_to_indexes(Instance* inst, Point* p, int n, int* indexes)
     return indexes;
 }
 
-void extra_mileage(Instance* inst,  em_options* options)
+void extra_mileage(Instance* inst)
 {
     //check for call parameters
-    if (options->opt == NORM)
-        extra_mileage_det(inst, options->start);
-    else if (options->opt == GRASP_2)
-        extra_mileage_grasp2(inst, options->start, options->p1);
-    else if (options->opt==GRASP_3)
-        extra_mileage_grasp3(inst, options->start, options->p1, options->p2);
+    if (inst->solver.id == EM) 
+        extra_mileage_det(inst);
+    else if (inst->solver.id == EM_GRASP2)
+        extra_mileage_grasp2(inst);
+    else if (inst->solver.id == EM_GRASP3)
+        extra_mileage_grasp3(inst);
     else
         print_error("Wrong parameter for extra mileage algorithm");
 
@@ -95,7 +95,7 @@ void extra_mileage(Instance* inst,  em_options* options)
     save_if_best(inst);
 }
 
-void extra_mileage_det(Instance* inst, em_start start)
+void extra_mileage_det(Instance* inst)
 {
     //construct cost matrix if not already done
     if (inst->cost == NULL)
@@ -105,6 +105,7 @@ void extra_mileage_det(Instance* inst, em_start start)
     int n = inst->nnodes;
     int* starting_points = NULL;
     int n_starting = 0;
+    int start = inst->solver.start;
 
     if (start == RAND)
     {
@@ -145,15 +146,24 @@ void extra_mileage_det(Instance* inst, em_start start)
 
     //extra mileage loop
     int current_nodes = n_starting;
-    for (int i = 0; i < n; i++)
-        inst->currsol[i] = i;
-    inst->currsol[n] = *starting_points;
-    //set current tour
+    int* utilized = CALLOC(n, int);
+    //set the initial points in current solution
     for (int i = 0; i < n_starting; i++)
     {
-        swap(inst->currsol, i, starting_points[i]);
+        inst->currsol[i] = starting_points[i];
+        utilized[starting_points[i]] = 1;
     }
-    swap(inst->currsol, n_starting, n);
+    inst->currsol[n_starting] = starting_points[0];
+    //set remaining points
+    int k = 0;
+    for (int i = n_starting + 1; i < n; i++) 
+    {
+        while (utilized[k] == 1)
+            k++;
+        inst->currsol[i] = k;
+        utilized[k] = 1;
+    }
+    free(utilized);
 
     //untill all nodes are added
     while (current_nodes < n)
@@ -198,7 +208,7 @@ void extra_mileage_det(Instance* inst, em_start start)
     //plot_generator(inst, inst->nnodes);
 }
 
-void extra_mileage_grasp2(Instance* inst, em_start start, double p)
+void extra_mileage_grasp2(Instance* inst)
 {
     //construct cost matrix if not already done
     if (inst->cost == NULL)
@@ -208,6 +218,8 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     int n = inst->nnodes;
     int* starting_points = NULL;
     int n_starting;
+    int start = inst->solver.start;
+    int p = inst->solver.p1;
 
     if (start == RAND)
     {
@@ -321,7 +333,7 @@ void extra_mileage_grasp2(Instance* inst, em_start start, double p)
     free(starting_points);
 }
 
-void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
+void extra_mileage_grasp3(Instance* inst)
 {
     //construct cost matrix if not already done
     if (inst->cost == NULL)
@@ -331,6 +343,9 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     int n = inst->nnodes;
     int* starting_points = NULL;
     int n_starting = 0;
+    int start = inst->solver.start;
+    int p1 = inst->solver.p1;
+    int p2 = inst->solver.p2; 
 
     if (start == RAND)
     {
@@ -371,18 +386,25 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
 
     //extra mileage loop
     int current_nodes = n_starting;
-    for (int i = 0; i < n; i++)
-        inst->currsol[i] = i;
-    if (starting_points) //!=NULL
-        inst->currsol[n] = *starting_points;
-    else
-        print_error("%d: Starting points is NULL pointer", __LINE__);
-    //set current tour
+    int* utilized = CALLOC(n, int);
+    //set the initial points in current solution
     for (int i = 0; i < n_starting; i++)
     {
-        swap(inst->currsol, i, starting_points[i]);
+        inst->currsol[i] = starting_points[i];
+        utilized[starting_points[i]] = 1;
     }
-    swap(inst->currsol, n_starting, n);
+    inst->currsol[n_starting] = starting_points[0];
+    //set remaining points
+    int k = 0;
+    for (int i = n_starting + 1; i < n; i++)
+    {
+        while (utilized[k] == 1)
+            k++;
+        inst->currsol[i] = k;
+        utilized[k] = 1;
+    }
+    free(utilized); 
+
     //untill all nodes are added
     while (current_nodes < n)
     {
@@ -454,15 +476,15 @@ void extra_mileage_grasp3(Instance* inst, em_start start, double p1, double p2)
     free(starting_points);
 }
 
-void nearest_neighbor(Instance* inst, nn_options* options)
+void nearest_neighbor(Instance* inst)
 {
     //check for call parameters
-    if (options->opt == NORM)
-        nearest_neighbor_det(inst, options->nn_starting_node);
-    else if (options->opt == GRASP_2)
-        nearest_neighbor_grasp2(inst, options->nn_starting_node, options->p1);
-    else if (options->opt == GRASP_3)
-        nearest_neighbor_grasp3(inst, options->nn_starting_node, options->p1, options->p2);
+    if (inst->solver.id == NN)
+        nearest_neighbor_det(inst, rand_int(0, inst->nnodes));
+    else if (inst->solver.id == NN_GRASP2)
+        nearest_neighbor_grasp2(inst, rand_int(0, inst->nnodes));
+    else if (inst->solver.id == NN_GRASP3)
+        nearest_neighbor_grasp3(inst, rand_int(0, inst->nnodes));
     else
         print_error("Wrong parameter for extra mileage algorithm");
 
@@ -543,11 +565,12 @@ int nearest_neighbor_allstart(Instance* inst)
     return best_start;
 }
 
-void nearest_neighbor_grasp2(Instance* inst, int start, double p2) 
+void nearest_neighbor_grasp2(Instance* inst, int start) 
 {
     if (start < 0)
         print_error("Invalid choice of the start node");
 
+    int p2 = inst->solver.p1;
     int n = inst->nnodes;
     int len = 0;
     double costo = 0;
@@ -609,13 +632,15 @@ void nearest_neighbor_grasp2(Instance* inst, int start, double p2)
 }
 
 // grasp NN given a starting point and the 2 probabities
-void nearest_neighbor_grasp3(Instance* inst, int start, double p2, double p3) 
+void nearest_neighbor_grasp3(Instance* inst, int start) 
 {
     if (start < 0)
     {
         print_error("%d, Invalid choice of the start node", __LINE__);
     }
 
+    int p2 = inst->solver.p1;
+    int p3 = inst->solver.p2; 
     int n = inst->nnodes;
     int len = 0;
     double costo = 0;
@@ -699,8 +724,9 @@ void nearest_neighbor_grasp3(Instance* inst, int start, double p2, double p3)
 }
 
 // grasp where every 20 iteration it makes a random pick
-void nearest_neighbor_grasp_random(Instance* inst, int start, double p2) 
+void nearest_neighbor_grasp_random(Instance* inst, int start) 
 {
+    double p2 = inst->solver.p1; 
     if (start < 0)
         print_error("Invalid choice of the start node");
 
@@ -779,7 +805,8 @@ void nearest_neighbor_grasp_random(Instance* inst, int start, double p2)
 }
 
 
-void next_bestsol(Instance* inst, int it) {
+void next_bestsol(Instance* inst, int it) 
+{
     //assume we have already found a solution
     //this funxtions returns the next best solution in the neighborhood that is not currsol and satisfies tabu list
 
@@ -834,43 +861,21 @@ void next_bestsol(Instance* inst, int it) {
     }
 }
 
-void solve(Instance* inst, solve_options* options)
+void tabu_search(Instance* inst) 
 {
-    inst->time_limit = options->timelimit;
-    if (options->alg == EM)
-    {
-        extra_mileage(inst, options->em_opts);
-    }
-    else if (options->alg == NN)
-    {
-        nearest_neighbor(inst, options->nn_opts); 
-    }
-    else if (options->alg == GEN)
-    {
-        genetic(inst); 
-        return;
-    }
-    else
-        print_error("%d, Error in setting algorithm options for solving", __LINE__);
-
-    printf("starting to iterate");
+    //printf("starting to iterate");
     //iterate untill timelimit is exceeded
     int it = 0;
     int time_elapsed = time(NULL) - inst->tstart;
-    while ( time_elapsed < options->timelimit)
+    while (time_elapsed < inst->time_limit)
     {
         next_bestsol(inst, it);
         it++;
         time_elapsed = time(NULL) - inst->tstart;
     }
-    //plot best instance found
-    //plot_generator(inst, inst->nnodes);
 }
 
-//plot cost of incumbent during solving (or cost in console but better to plot)
-//tabulate formatted output
-
-void VNS(Instance* inst) 
+void vns(Instance* inst) 
 {
     // initialize solution
     nearest_neighbor_grasp_random(inst, 0, 0.5);

@@ -5,7 +5,6 @@
 #include "utility.h"
 #include "heuristics.h"
 
-
 //================HYPERPARAMETERS================
 #define POP_SIZE 1000		//population size
 #define AUTOMATIC_PASS 500  //number of best individuals that automatically pass the selection phase

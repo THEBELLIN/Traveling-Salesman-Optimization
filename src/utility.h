@@ -3,6 +3,7 @@
 
 #include "TSP.h"
 #include "genetics.h"
+#include "heuristics.h"
 
 //================shortcuts=============================
 #define MALLOC(n, type) ((type *) malloc ((n) * sizeof(type)))

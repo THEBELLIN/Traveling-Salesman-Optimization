@@ -5,7 +5,7 @@
 #include "utility.h"
 #include "heuristics.h"
 
-void simulated_annealing(Instance*, int);
+void simulated_annealing(Instance*);
 void random_two_opt_move(int*,Instance*);
 
 #endif

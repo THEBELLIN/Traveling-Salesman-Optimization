@@ -3,7 +3,9 @@
 #include "heuristics.h"
 #include "annealing.h"
 
-void simulated_annealing(Instance* inst, int time_limit) {
+void simulated_annealing(Instance* inst)
+{
+    int time_limit = inst->time_limit;
     int n = inst->nnodes;
     double T = 100.0; // initial temperature
     printf("temp: %f", T);

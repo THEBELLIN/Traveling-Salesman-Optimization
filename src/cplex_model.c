@@ -48,6 +48,7 @@ int TSPopt(Instance* inst)
 	*/
 	//TODO divide in separate functions with wrapper to choose the solver method
 	//benders_loop(inst, env, lp);
+	
 	//just print one line with lb at every iteration
 
 	// free and close cplex model   
@@ -488,19 +489,19 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 		double* value = CALLOC(inst->ncols, double); 
 		char** cname = CALLOC(1, char*); 
 		cname[0] = CALLOC(100, char); 
-		int* rhs;
-		char* sense; 
-		int* nnz;
+		int rhs;
+		char sense; 
+		int nnz;
 
 		for (int c = 1; c <= ncomp; c++)
 		{
 			//maybe use add_SEC with a check for context in order to use addrow or reject sol
-			get_SEC(inst, ncomp, comp, index, value, cname, rhs, sense, nnz, c);
+			get_SEC(inst, ncomp, comp, index, value, cname, &rhs, &sense, &nnz, c);
 
-			if (*nnz > 0) // means that the solution is infeasible and a violated cut has been found
+			if (nnz > 0) // means that the solution is infeasible and a violated cut has been found
 			{
 				int izero = 0;
-				if (CPXcallbackrejectcandidate(context, 1, nnz, rhs, sense, &izero, index, value))
+				if (CPXcallbackrejectcandidate(context, 1, nnz, &rhs, &sense, &izero, index, value))
 					print_error("CPXcallbackrejectcandidate() error"); // reject the solution and adds one cut 
 			}
 

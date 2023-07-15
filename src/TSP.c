@@ -1,5 +1,11 @@
 #include "TSP.h"  
 #include "utility.h"
+#include "heuristics.h"
+#include "annealing.h"
+#include "cplex_model.h"
+#include "genetics.h"
+#include "local_branching.h"
+#include "hard_fixing.h"
 #include <time.h>
 
 //check feasibility of a solution with n nodes
@@ -359,3 +365,55 @@ void transform_in_perm_and_save(int* succ, Instance* inst) {
 		curr = succ[curr];
 	}
 }
+
+//TODO check all parameters needed are set in parseargs
+void solve(Instance* inst)
+{
+	solver_id sid = inst->solver.id;
+	if (sid == EM || sid == EM_GRASP2 || sid == EM_GRASP3)
+	{
+		extra_mileage(inst);
+	}
+	else if (sid == NN || sid == NN_GRASP2 || sid == NN_GRASP3)
+	{
+		nearest_neighbor(inst);
+	}
+	else if (sid == GEN)
+	{
+		genetic(inst);
+		return;
+	}
+	else if (sid == TABU)
+	{
+		tabu_search(inst);
+	}
+	else if (sid == VNS)
+	{
+		vns(inst);
+	}
+	else if (sid == SIMANN)
+	{
+		simulated_annealing(inst); 
+	}
+	else if (sid == CPLEX_BENDERS || sid == CPLEX_CALLBACK)
+	{
+		TSPopt(inst);
+	}
+	else if (sid == LOCAL_BRANCHING)
+	{
+		local_branching(inst);
+	}
+	else if (sid == HARD_FIXING )
+	{
+		hard_fixing(inst);
+	}
+	else
+		print_error("%d, Error in setting algorithm options for solving", __LINE__);
+
+
+	//plot best instance found
+	//plot_generator(inst, inst->nnodes);
+}
+
+//plot cost of incumbent during solving (or cost in console but better to plot)
+//tabulate formatted output
