@@ -878,7 +878,7 @@ void tabu_search(Instance* inst)
 void vns(Instance* inst) 
 {
     // initialize solution
-    nearest_neighbor_grasp_random(inst, 0, 0.5);
+    nearest_neighbor_grasp_random(inst, 0);
     int n = inst->nnodes;
     int i = 0;
     //copy bestsol to currsol since two_opt works on currsol

@@ -13,7 +13,7 @@ void hard_fixing(Instance* inst)
 
 	// initialize with an heuristic method x_0 first solution
 	// a questo punto bestsol is initialized and has a best cost initialized
-	nearest_neighbor_grasp_random(inst, 0, 0.5);
+	nearest_neighbor_grasp_random(inst, 0); //TODO fix right now uses same p1 as "percentage"
 	two_opt(inst, inst->bestsol);
 	inst->bestcost = calculateCost(inst, inst->bestsol);
 	printf("heuristic solution cost %f", inst->bestcost);

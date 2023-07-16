@@ -10,10 +10,8 @@
 #define GRASP2(p) {.opt=GRASP_2, .p1=p, .p2=0};
 #define GRASP3(p, pp) {.opt=GRASP_3, .p1=p, .p2=pp};
 
-//=================ENUMS===========================
+//================= CONSTANTS =======================
 
-
-//=================STRUCTS============================
 
 //====================FUNCTIONS=======================
 int* points_to_indexes(Instance*, Point*, int, int*);

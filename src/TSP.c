@@ -49,6 +49,12 @@ void initialize_instance(Instance* inst)
 	inst->randomseed = 1337;
 	inst->tstart = time(NULL);
 	inst->tabu_tenure = -1;
+	inst->solver.id = NULL;
+	inst->solver.p1 = -1;
+	inst->solver.p2 = -1;
+	inst-> solver.start = -1;
+	inst->verbose = 0;
+	inst->time_limit = -1;
 }
 
 void parse_args(Instance* inst, int argc, char** argv)
@@ -59,6 +65,26 @@ void parse_args(Instance* inst, int argc, char** argv)
 	int arg = 2;
 	for (int i = 1; i < argc; i++)
 	{
+		if(strncmp(argv[i], "-help", 5) == 0) //parameters help
+		{
+			//print instructions
+			printf("Usage: %s -f <inputfile> -v <verbose> -seed <randomseed> -tenure <tabu_tenure> -time <time_limit> -solver <solver> -p1 <p1> -p2 <p2> -em_start <em_start>\n", argv[0]);
+			
+			//print solvers
+			printf("Available solvers: NN, NN_GRASP2, NN_GRASP3, EM, EM_GRASP2, EM_GRASP3, GEN, VNS, SIMANN, TABU, CPLEX_BENDERS, CPLEX_CALLBACK, LOCAL_BRANCHING, HARD_FIXING\n");
+			
+			//print available em_start
+			printf("Available em_starts: RAND, MAX_DIST, CONV_HULL\n");
+
+			//print paramenters needed
+			printf("Solvers that need p1: NN_GRASP2, NN_GRASP3, EM_GRASP2, EM_GRASP3, VNS, LOCAL_BRANCHING, HARD_FIXING\n");
+			printf("Solvers that also need p2: NN_GRASP3, EM_GRASP3, HARD_FIXING\n");
+			printf("Solvers that need em_start: EM, EM_GRASP2, EM_GRASP3\n");
+			
+			//print default values
+			printf("Default values: verbose: 0, seed: 1337.\n");
+			continue;
+		}
 		if (strncmp(argv[i], "-f", 2) == 0) //input file
 		{
 			strcpy(inst->inputfile, argv[++i]);
@@ -69,7 +95,7 @@ void parse_args(Instance* inst, int argc, char** argv)
 			inst->verbose = atoi(argv[++i]);
 			continue;
 		}
-		if (strncmp(argv[i], "-seed", 5) == 0) //verbose level
+		if (strncmp(argv[i], "-seed", 5) == 0) //seed
 		{
 			inst->randomseed = atoi(argv[++i]);
 			continue;
@@ -84,8 +110,101 @@ void parse_args(Instance* inst, int argc, char** argv)
 			inst->time_limit = atoi(argv[++i]);
 			continue;
 		}
+		if (strncmp(argv[i], "-solver", 7) == 0) //solver
+		{
+			if (strncmp(argv[++i], "nn", 2) == 0)
+				inst->solver.id = NN;
+			else if (strncmp(argv[i], "nn_grasp2", 9) == 0)
+				inst->solver.id = NN_GRASP2;
+			else if (strncmp(argv[i], "nn_grasp3", 9) == 0)
+				inst->solver.id = NN_GRASP3;
+			else if (strncmp(argv[i], "em", 2) == 0)
+				inst->solver.id = EM;
+			else if (strncmp(argv[i], "em_grasp2", 9) == 0)
+				inst->solver.id = EM_GRASP2;
+			else if (strncmp(argv[i], "em_grasp3", 9) == 0)
+				inst->solver.id = EM_GRASP3;
+			else if (strncmp(argv[i], "gen", 3) == 0)
+				inst->solver.id = GEN;
+			else if (strncmp(argv[i], "vns", 3) == 0)
+				inst->solver.id = VNS; 
+			else if (strncmp(argv[i], "simann", 6) == 0)
+				inst->solver.id = SIMANN; 
+			else if (strncmp(argv[i], "tabu", 4) == 0)
+				inst->solver.id = TABU; 
+			else if (strncmp(argv[i], "cplex_benders", 13) == 0)
+				inst->solver.id = CPLEX_BENDERS; 
+			else if (strncmp(argv[i], "cplex_callback", 14) == 0)
+				inst->solver.id = CPLEX_CALLBACK; 
+			else if (strncmp(argv[i], "local_branching", 15) == 0)
+				inst->solver.id = LOCAL_BRANCHING;
+			else if (strncmp(argv[i], "hard_fixing", 11) == 0)
+				inst->solver.id = HARD_FIXING; 
+			else
+				print_error("%d, solver not recognized", __LINE__);
+			continue;
+		}
+		if(strncmp(argv[i], "-p1", 3) == 0) //p1
+		{
+			inst->solver.p1 = atof(argv[++i]);
+			//check that p1 is in the range [0,1]
+			if (inst->solver.p1 < 0 || inst->solver.p1 > 1)
+				print_error("%d, p1 must be in the range [0,1]", __LINE__); 
+			continue;
+		}
+		if(strncmp(argv[i], "-p2", 3) == 0) //p2
+		{
+			inst->solver.p2 = atof(argv[++i]);
+			//check that p2 is in the range [0,1]
+			if (inst->solver.p2 < 0 || inst->solver.p1 > 1)
+				print_error("%d, p1 must be in the range [0,1]", __LINE__); 
+			continue;
+		}
+		if(strncmp(argv[i], "-em_start", 9) == 0) //em_start
+		{
+			inst->solver.start = atoi(argv[++i]);
+			//check that em_start is one of the following values: 0, 1, 2 
+			if (inst->solver.start < 0 || inst->solver.start > 2) 
+				print_error("%d, em_start must be one of the following values: RAND, MAX_DIST, CONV_HULL", __LINE__); 
+
+			continue;
+		}
 	}
+	//check all fundamental arguments are filled and with feasible values
+	check_params(inst);
 }
+
+void check_params(Instance* inst)
+{
+	//check that input file is set
+	if (inst->inputfile[0] == '\0')
+		print_error("%d, Input file not set", __LINE__); 
+
+	//check that time limit is set
+	if (inst->time_limit < 0)
+		print_error("%d, Time limit not set", __LINE__); 
+
+	//check that solver is set
+	if (inst->solver.id == NULL)
+		print_error("%d, Solver not set", __LINE__); 
+
+	//check that p1 is set
+	int sid = inst->solver.id;
+	if ((sid == NN_GRASP2 || sid == NN_GRASP3 || sid == EM_GRASP2 || sid == EM_GRASP3 || sid == VNS || sid == LOCAL_BRANCHING || sid == HARD_FIXING) && inst->solver.p1 < 0)
+		print_error("%d, p1 not set", __LINE__);
+
+	//check that p2 is set
+	if ((sid == NN_GRASP3 || sid == EM_GRASP3 || sid == HARD_FIXING) && inst->solver.p2 < 0) 
+		print_error("%d, p2 not set", __LINE__); 
+
+	//check that em_start is set
+	if ((sid == EM || sid == EM_GRASP2 || sid == EM_GRASP3) && inst->solver.start < 0) 
+		print_error("%d, em_start not set", __LINE__); 
+
+	//check tenure is set
+	if (sid == TABU && inst->tabu_tenure < 0) 
+		print_error("%d, tabu tenure not set", __LINE__); 
+} 
 
 void parse_TSPLIB(Instance* inst)
 {

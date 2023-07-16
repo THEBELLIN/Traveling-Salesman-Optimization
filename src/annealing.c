@@ -7,10 +7,10 @@ void simulated_annealing(Instance* inst)
 {
     int time_limit = inst->time_limit;
     int n = inst->nnodes;
-    double T = 100.0; // initial temperature
+    double T = INITIAL_TEMPERATURE; // initial temperature
     printf("temp: %f", T);
     int i = 1;
-    double alpha = 0.99;// cooling factor
+    double alpha = COOLING_FACTOR;// cooling factor
     time_t start_time = time(NULL);// inital time
     int* newsol = (int*)calloc(n + 1, sizeof(int));// array for solution
     double costnewsol = inst->bestcost;  // cost initialized 

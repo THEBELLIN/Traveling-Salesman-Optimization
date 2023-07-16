@@ -13,7 +13,7 @@ void local_branching(Instance* inst)
 	// initialize with an heuristic method x_0 first solution
 	// a questo punto bestsol is initialized and has a best cost initialized
 	// TODO use another heuristic giving it time per call as timelimit
-	nearest_neighbor_grasp_random(inst, 0, 0.5);
+	nearest_neighbor_grasp_random(inst, 0); //p1 used for this
 	two_opt(inst, inst->bestsol);
 	inst->bestcost = calculateCost(inst, inst->bestsol);
 	printf("heuristic solution cost %f", inst->bestcost);
@@ -51,7 +51,7 @@ void local_branching(Instance* inst)
 	sprintf(cname[0], "local branching");
 
 
-	int k = 20; // number of neighbourhood;
+	int k = K_NEIGHBOURHOOD; // number of neighbourhood;
 
 
 	//while cycle untill i have time

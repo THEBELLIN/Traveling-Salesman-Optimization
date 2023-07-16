@@ -87,6 +87,7 @@ void print_error(const char*);
 void initialize_instance(Instance*);
 bool check_feasibility(int*, int);
 void parse_args(Instance*, int, char**);
+void check_params(Instance*);
 void print_points(Instance*);
 Point* generate_random_points(int);
 Point* generate_random_points_range(int, double, double);

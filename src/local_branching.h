@@ -9,7 +9,9 @@
 #include "hard_fixing.h"
 #include <time.h>
 
+//================ CONSTANTS ===================
+#define K_NEIGHBOURHOOD 20;
 
-//================functions=================
+//================ FUNCTIONS =================
 void local_branching(Instance*);
 #endif
