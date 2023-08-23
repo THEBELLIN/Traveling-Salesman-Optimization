@@ -531,7 +531,8 @@ void solve(Instance* inst)
 		// copy bestsol which has the solution for best start in currsol since two opt works on currsol
 		copy_array(inst->bestsol, inst->currsol, inst->nnodes + 1);
 		inst->currcost = inst->bestcost;
-		printf("\nStarting two optimization");
+		if(inst->verbose>2)
+			printf("\nStarting two optimization");
 		two_opt(inst);
 	}
 	else if (sid == SIMANN)
