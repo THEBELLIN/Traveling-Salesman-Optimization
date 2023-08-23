@@ -3,11 +3,10 @@
 #include "heuristics.h"
 #include "genetics.h"
 
-
 void genetic(Instance* inst)
 {
 	//first 1000 are population, 
-	individual* population = MALLOC(POP_SIZE + N_CHILDREN, individual); 
+	individual* population = MALLOC(POP_SIZE + N_CHILDREN, individual);
 	int added = 0;
 
 	if (inst->currcost < INF_INT)
@@ -39,7 +38,9 @@ void genetic(Instance* inst)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
 		int starting_node = rand_int(0, inst->nnodes - 1);
-		nearest_neighbor_grasp2(inst, starting_node, 0.15, 0.05);
+		inst->solver.p1 = 0.15;
+		inst->solver.p2 = 0.05;
+		nearest_neighbor_grasp2(inst, starting_node);
 		copy_array(inst->currsol, population[i].genes, inst->nnodes + 1);
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}
@@ -52,7 +53,8 @@ void genetic(Instance* inst)
 		inst->solver.start = RAND;
 		inst->solver.p1 = 0.1;
 		inst->solver.p2 = 0;
-		extra_mileage(inst);
+		extra_mileage_grasp2(inst);
+
 		copy_array(inst->currsol, population[i].genes, inst->nnodes + 1);
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}
@@ -86,7 +88,7 @@ void genetic(Instance* inst)
 		free(population[i].genes);
 	}
 	free(population);
- }
+}
 
 double get_fitness(Instance* inst, int* genes)
 {
@@ -105,8 +107,8 @@ void generate_random_tour(int* genes, const int nnodes)
 	//then swap at random 2 nodes
 	for (int i = 0; i < nnodes; i++)
 	{
-		int i1 = rand_int(0, nnodes-1);
-		int i2 = rand_int(0, nnodes-1);
+		int i1 = rand_int(0, nnodes - 1);
+		int i2 = rand_int(0, nnodes - 1);
 		swap(genes, i1, i2);
 	}
 
@@ -243,7 +245,7 @@ void crossover(Instance* inst, individual* population, const int parent1, const 
 		{
 			if (!visited[p2.genes[i]])
 			{
-				child->genes[index++] = p2.genes[i];	
+				child->genes[index++] = p2.genes[i];
 			}
 		}
 	}
@@ -251,7 +253,7 @@ void crossover(Instance* inst, individual* population, const int parent1, const 
 	child->genes[inst->nnodes] = child->genes[0];
 	child->fitness = get_fitness(inst, child->genes);
 
-	free(visited); 
+	free(visited);
 
 	//method2: add remaining nodes with extra mileage TODO
 }
@@ -265,7 +267,7 @@ void mutation(Instance* inst, individual* population, const int parent, const in
 individual* get_champion(individual* population, const int size)
 {
 	qsort(population, size, sizeof(individual), compareIndividual);
-	return population + (size - 1);	
+	return population + (size - 1);
 }
 
 void selection(individual* population, const int all_size, const int desired_size)

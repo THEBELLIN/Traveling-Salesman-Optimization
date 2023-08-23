@@ -11,7 +11,7 @@
 #define INITIAL_TEMPERATURE 100.0
 
 //============ FUNCTIONS ============
-void simulated_annealing(Instance*);
-void random_two_opt_move(int*,Instance*);
+void simulated_annealing2(Instance*);
+void random_two_opt_move2(int*,Instance*);
 
 #endif

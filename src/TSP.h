@@ -12,17 +12,21 @@
 //==================enums==================
 typedef enum
 {
-	NN,
-	NN_GRASP2,
-	NN_GRASP3,
-	EM,			//always select the best option at each step -> deterministic	
-	EM_GRASP2,	//use the second best option with probability 1-p
-	EM_GRASP3,	//use the 1st option with probability p1, the 2nd with p2, 3rd with 1-p1-p2
-	GEN, 
-	VNS, 
-	SIMANN, 
-	TABU,
-	CPLEX_BENDERS, 
+	NN,            // V
+	GRASP2_NN,     // V
+	GRASP3_NN,     // V
+	GRASP_ITER,    // V
+	NN_EX_ITER,    // V 
+	ALL_START_NN,  // V
+	MILEAGE,	   // V	          	//always select the best option at each step -> deterministic	
+	EM_GRASP2,	   // V             //use the second best option with probability 1-p
+	EM_GRASP3,	   // V             //use the 1st option with probability p1, the 2nd with p2, 3rd with 1-p1-p2
+	TWO_OPT,       // V
+	GEN,
+	VNS,           // V
+	SIMANN,        // V
+	TABU,          // V 
+	CPLEX_BENDERS,
 	CPLEX_CALLBACK,
 	LOCAL_BRANCHING,
 	HARD_FIXING
@@ -102,6 +106,7 @@ void save_if_best(Instance*);
 void file_perf_prof(int, int, int);
 void sol_to_tsp(int*, double*, Instance*);
 void transform_in_perm_and_save(int*, Instance*);
-void solve(Instance*); 
+void solve(Instance*);
+void print_params(Instance*);
 
 #endif

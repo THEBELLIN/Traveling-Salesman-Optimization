@@ -59,35 +59,35 @@ void initialize_instance(Instance* inst)
 
 void parse_args(Instance* inst, int argc, char** argv)
 {
-	//TODO check all fundamental arguments are filled
 	if (argc < 2)
 		print_error("Not enough arguments in the command line while launching the program");
 	int arg = 2;
 	for (int i = 1; i < argc; i++)
 	{
-		if(strncmp(argv[i], "-help", 5) == 0) //parameters help
+		if (strncmp(argv[i], "-help", 5) == 0) //parameters help and after it finishes the program
 		{
 			//print instructions
 			printf("Usage: %s -f <inputfile> -v <verbose> -seed <randomseed> -tenure <tabu_tenure> -time <time_limit> -solver <solver> -p1 <p1> -p2 <p2> -em_start <em_start>\n", argv[0]);
-			
+
 			//print solvers
-			printf("Available solvers: NN, NN_GRASP2, NN_GRASP3, EM, EM_GRASP2, EM_GRASP3, GEN, VNS, SIMANN, TABU, CPLEX_BENDERS, CPLEX_CALLBACK, LOCAL_BRANCHING, HARD_FIXING\n");
-			
+			printf("Available solvers: NN, GRASP2_NN, GRASP3_NN, MILEAGE, EM_GRASP2, EM_GRASP3, GEN, VNS, SIMANN, TABU, CPLEX_BENDERS, CPLEX_CALLBACK, LOCAL_BRANCHING, HARD_FIXING\n");
+
 			//print available em_start
 			printf("Available em_starts: RAND, MAX_DIST, CONV_HULL\n");
 
 			//print paramenters needed
-			printf("Solvers that need p1: NN_GRASP2, NN_GRASP3, EM_GRASP2, EM_GRASP3, VNS, LOCAL_BRANCHING, HARD_FIXING\n");
-			printf("Solvers that also need p2: NN_GRASP3, EM_GRASP3, HARD_FIXING\n");
-			printf("Solvers that need em_start: EM, EM_GRASP2, EM_GRASP3\n");
-			
+			printf("Solvers that need p1: GRASP2_NN, GRASP3_NN, EM_GRASP2, EM_GRASP3, VNS, LOCAL_BRANCHING, HARD_FIXING\n");
+			printf("Solvers that also need p2: GRASP3_NN, EM_GRASP3, HARD_FIXING\n");
+			printf("Solvers that need em_start: MILEAGE, EM_GRASP2, EM_GRASP3\n");
+
 			//print default values
 			printf("Default values: verbose: 0, seed: 1337.\n");
-			continue;
+			break;
 		}
 		if (strncmp(argv[i], "-f", 2) == 0) //input file
 		{
 			strcpy(inst->inputfile, argv[++i]);
+
 			continue;
 		}
 		if (strncmp(argv[i], "-v", 2) == 0) //verbose level
@@ -110,101 +110,119 @@ void parse_args(Instance* inst, int argc, char** argv)
 			inst->time_limit = atoi(argv[++i]);
 			continue;
 		}
-		if (strncmp(argv[i], "-solver", 7) == 0) //solver
-		{
-			if (strncmp(argv[++i], "nn", 2) == 0)
-				inst->solver.id = NN;
-			else if (strncmp(argv[i], "nn_grasp2", 9) == 0)
-				inst->solver.id = NN_GRASP2;
-			else if (strncmp(argv[i], "nn_grasp3", 9) == 0)
-				inst->solver.id = NN_GRASP3;
-			else if (strncmp(argv[i], "em", 2) == 0)
-				inst->solver.id = EM;
-			else if (strncmp(argv[i], "em_grasp2", 9) == 0)
-				inst->solver.id = EM_GRASP2;
-			else if (strncmp(argv[i], "em_grasp3", 9) == 0)
-				inst->solver.id = EM_GRASP3;
-			else if (strncmp(argv[i], "gen", 3) == 0)
-				inst->solver.id = GEN;
-			else if (strncmp(argv[i], "vns", 3) == 0)
-				inst->solver.id = VNS; 
-			else if (strncmp(argv[i], "simann", 6) == 0)
-				inst->solver.id = SIMANN; 
-			else if (strncmp(argv[i], "tabu", 4) == 0)
-				inst->solver.id = TABU; 
-			else if (strncmp(argv[i], "cplex_benders", 13) == 0)
-				inst->solver.id = CPLEX_BENDERS; 
-			else if (strncmp(argv[i], "cplex_callback", 14) == 0)
-				inst->solver.id = CPLEX_CALLBACK; 
-			else if (strncmp(argv[i], "local_branching", 15) == 0)
-				inst->solver.id = LOCAL_BRANCHING;
-			else if (strncmp(argv[i], "hard_fixing", 11) == 0)
-				inst->solver.id = HARD_FIXING; 
-			else
-				print_error("%d, solver not recognized", __LINE__);
-			continue;
-		}
-		if(strncmp(argv[i], "-p1", 3) == 0) //p1
+
+		if (strncmp(argv[i], "-p1", 3) == 0) //p1
 		{
 			inst->solver.p1 = atof(argv[++i]);
 			//check that p1 is in the range [0,1]
 			if (inst->solver.p1 < 0 || inst->solver.p1 > 1)
-				print_error("%d, p1 must be in the range [0,1]", __LINE__); 
+				print_error("%d, p1 must be in the range [0,1]", __LINE__);
 			continue;
 		}
-		if(strncmp(argv[i], "-p2", 3) == 0) //p2
+		if (strncmp(argv[i], "-p2", 3) == 0) //p2
 		{
 			inst->solver.p2 = atof(argv[++i]);
 			//check that p2 is in the range [0,1]
 			if (inst->solver.p2 < 0 || inst->solver.p1 > 1)
-				print_error("%d, p1 must be in the range [0,1]", __LINE__); 
+				print_error("%d, p1 must be in the range [0,1]", __LINE__);
 			continue;
 		}
-		if(strncmp(argv[i], "-em_start", 9) == 0) //em_start
+		if (strncmp(argv[i], "-em_start", 9) == 0) //em_start
 		{
 			inst->solver.start = atoi(argv[++i]);
 			//check that em_start is one of the following values: 0, 1, 2 
-			if (inst->solver.start < 0 || inst->solver.start > 2) 
-				print_error("%d, em_start must be one of the following values: RAND, MAX_DIST, CONV_HULL", __LINE__); 
+			if (inst->solver.start < 0 || inst->solver.start > 2)
+				print_error("%d, em_start must be one of the following values: RAND, MAX_DIST, CONV_HULL", __LINE__);
 
 			continue;
 		}
+
+		if (strncmp(argv[i], "-solver", 7) == 0) //solver
+		{
+			if (strncmp(argv[++i], "nn", 2) == 0)
+				inst->solver.id = NN;
+			else if (strncmp(argv[i], "grasp2_nn", 9) == 0)
+				inst->solver.id = GRASP2_NN;
+			else if (strncmp(argv[i], "grasp3_nn", 9) == 0)
+				inst->solver.id = GRASP3_NN;
+			else if (strncmp(argv[i], "mileage", 7) == 0)
+				inst->solver.id = MILEAGE;
+			else if (strncmp(argv[i], "em_grasp2", 9) == 0)
+				inst->solver.id = EM_GRASP2;
+			else if (strncmp(argv[i], "em_grasp3", 9) == 0)
+				inst->solver.id = EM_GRASP3;
+			else if (strncmp(argv[i], "two_opt", 7) == 0)
+				inst->solver.id = TWO_OPT;
+			else if (strncmp(argv[i], "all_start_nn", 12) == 0)
+				inst->solver.id = ALL_START_NN;
+			else if (strncmp(argv[i], "vns", 3) == 0) {
+				inst->solver.id = VNS;
+				//printf("fatto");
+			}
+			else if (strncmp(argv[i], "genetic", 7) == 0)
+				inst->solver.id = GEN;
+			else if (strncmp(argv[i], "simann", 6) == 0)
+				inst->solver.id = SIMANN;
+			else if (strncmp(argv[i], "tabu", 4) == 0)
+				inst->solver.id = TABU;
+			else if (strncmp(argv[i], "cplex_benders", 13) == 0)
+				inst->solver.id = CPLEX_BENDERS;
+			else if (strncmp(argv[i], "cplex_callback", 14) == 0)
+				inst->solver.id = CPLEX_CALLBACK;
+			else if (strncmp(argv[i], "local_branching", 15) == 0)
+				inst->solver.id = LOCAL_BRANCHING;
+			else if (strncmp(argv[i], "hard_fixing", 11) == 0)
+				inst->solver.id = HARD_FIXING;
+			else
+				print_error("%d, solver not recognized", __LINE__);
+			continue;
+		}
 	}
-	//check all fundamental arguments are filled and with feasible values
-	check_params(inst);
+}
+
+
+void print_params(Instance* inst) {
+	printf("\ninput file:%s", inst->inputfile);
+	printf("\nnnodes:%d", inst->nnodes);
+	printf("\ntabu_tenure:%d", inst->tabu_tenure);
+	printf("\ntime_limit:%f", inst->time_limit);
+	printf("\nverbose: %d", inst->verbose);
+	printf("\np2: %f", inst->solver.p1);
+	printf("\np3: %f", inst->solver.p2);
 }
 
 void check_params(Instance* inst)
 {
 	//check that input file is set
 	if (inst->inputfile[0] == '\0')
-		print_error("%d, Input file not set", __LINE__); 
+		print_error("%d, Input file not set", __LINE__);
 
 	//check that time limit is set
 	if (inst->time_limit < 0)
-		print_error("%d, Time limit not set", __LINE__); 
+		print_error("%d, Time limit not set", __LINE__);
 
 	//check that solver is set
 	if (inst->solver.id == NULL)
-		print_error("%d, Solver not set", __LINE__); 
+		print_error("%d, Solver not set", __LINE__);
 
 	//check that p1 is set
 	int sid = inst->solver.id;
-	if ((sid == NN_GRASP2 || sid == NN_GRASP3 || sid == EM_GRASP2 || sid == EM_GRASP3 || sid == VNS || sid == LOCAL_BRANCHING || sid == HARD_FIXING) && inst->solver.p1 < 0)
+	if ((sid == GRASP2_NN || sid == GRASP3_NN || sid == EM_GRASP2 || sid == EM_GRASP3 || sid == VNS || sid == LOCAL_BRANCHING || sid == HARD_FIXING) && inst->solver.p1 < 0)
 		print_error("%d, p1 not set", __LINE__);
 
 	//check that p2 is set
-	if ((sid == NN_GRASP3 || sid == EM_GRASP3 || sid == HARD_FIXING) && inst->solver.p2 < 0) 
-		print_error("%d, p2 not set", __LINE__); 
+	if ((sid == GRASP3_NN || sid == EM_GRASP3 || sid == HARD_FIXING) && inst->solver.p2 < 0)
+		print_error("%d, p2 not set", __LINE__);
 
 	//check that em_start is set
-	if ((sid == EM || sid == EM_GRASP2 || sid == EM_GRASP3) && inst->solver.start < 0) 
-		print_error("%d, em_start not set", __LINE__); 
+	if ((sid == MILEAGE || sid == EM_GRASP2 || sid == EM_GRASP3) && inst->solver.start < 0)
+		print_error("%d, em_start not set", __LINE__);
 
 	//check tenure is set
-	if (sid == TABU && inst->tabu_tenure < 0) 
-		print_error("%d, tabu tenure not set", __LINE__); 
-} 
+	if (sid == TABU && inst->tabu_tenure < 0)
+		print_error("%d, tabu tenure not set", __LINE__);
+}
+
 
 void parse_TSPLIB(Instance* inst)
 {
@@ -489,18 +507,14 @@ void transform_in_perm_and_save(int* succ, Instance* inst) {
 void solve(Instance* inst)
 {
 	solver_id sid = inst->solver.id;
-	if (sid == EM || sid == EM_GRASP2 || sid == EM_GRASP3)
+	if (sid == MILEAGE || sid == EM_GRASP2 || sid == EM_GRASP3)
 	{
 		extra_mileage(inst);
 	}
-	else if (sid == NN || sid == NN_GRASP2 || sid == NN_GRASP3)
+
+	else if (sid == NN || sid == GRASP2_NN || sid == GRASP3_NN || sid == ALL_START_NN)
 	{
 		nearest_neighbor(inst);
-	}
-	else if (sid == GEN)
-	{
-		genetic(inst);
-		return;
 	}
 	else if (sid == TABU)
 	{
@@ -510,9 +524,24 @@ void solve(Instance* inst)
 	{
 		vns(inst);
 	}
+	else if (sid == TWO_OPT)
+	{
+		inst->solver.id = GRASP2_NN;
+		grasp_iter(inst);
+		// copy bestsol which has the solution for best start in currsol since two opt works on currsol
+		copy_array(inst->bestsol, inst->currsol, inst->nnodes + 1);
+		inst->currcost = inst->bestcost;
+		printf("\nStarting two optimization");
+		two_opt(inst);
+	}
 	else if (sid == SIMANN)
 	{
-		simulated_annealing(inst); 
+		simulated_annealing(inst);
+	}
+	else if (sid == GEN)
+	{
+		genetic(inst);
+		return;
 	}
 	else if (sid == CPLEX_BENDERS || sid == CPLEX_CALLBACK)
 	{
@@ -520,19 +549,19 @@ void solve(Instance* inst)
 	}
 	else if (sid == LOCAL_BRANCHING)
 	{
-		local_branching(inst);
+		//local_branching(inst);
 	}
-	else if (sid == HARD_FIXING )
+	else if (sid == HARD_FIXING)
 	{
-		hard_fixing(inst);
+		//hard_fixing(inst);
 	}
 	else
 		print_error("%d, Error in setting algorithm options for solving", __LINE__);
 
 
 	//plot best instance found
-	//plot_generator(inst, inst->nnodes);
+	plot_generator(inst, inst->nnodes);
 }
 
 //plot cost of incumbent during solving (or cost in console but better to plot)
-//tabulate formatted output
+//tabulate formatt

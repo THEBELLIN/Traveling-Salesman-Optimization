@@ -3,7 +3,7 @@
 #include "heuristics.h"
 #include "annealing.h"
 
-void simulated_annealing(Instance* inst)
+void simulated_annealing2(Instance* inst)
 {
     int time_limit = inst->time_limit;
     int n = inst->nnodes;
@@ -49,7 +49,7 @@ void simulated_annealing(Instance* inst)
 }
 
 
-void random_two_opt_move(int* sol, Instance* inst) {
+void random_two_opt_move2(int* sol, Instance* inst) {
     int n = inst->nnodes;
     int first = rand() % (n - 4);
     int second = first + (rand() % (n - 2 - first + 1));
