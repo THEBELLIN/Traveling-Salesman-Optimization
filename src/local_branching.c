@@ -15,7 +15,7 @@ void local_branching(Instance* inst)
 	// TODO use another heuristic giving it time per call as timelimit
 	nearest_neighbor_grasp_random(inst, 0); //p1 used for this
 	two_opt(inst, inst->bestsol);
-	inst->bestcost = calculateCost(inst, inst->bestsol);
+	inst->bestcost = get_cost(inst, inst->bestsol);
 	printf("heuristic solution cost %f", inst->bestcost);
 
 	// open CPLEX model

@@ -49,7 +49,7 @@ void initialize_instance(Instance* inst)
 	inst->randomseed = 1337;
 	inst->tstart = time(NULL);
 	inst->tabu_tenure = -1;
-	inst->solver.id = NULL;
+	inst->solver.id = -1;
 	inst->solver.p1 = -1;
 	inst->solver.p2 = -1;
 	inst-> solver.start = -1;
@@ -110,7 +110,6 @@ void parse_args(Instance* inst, int argc, char** argv)
 			inst->time_limit = atoi(argv[++i]);
 			continue;
 		}
-
 		if (strncmp(argv[i], "-p1", 3) == 0) //p1
 		{
 			inst->solver.p1 = atof(argv[++i]);
@@ -136,7 +135,6 @@ void parse_args(Instance* inst, int argc, char** argv)
 
 			continue;
 		}
-
 		if (strncmp(argv[i], "-solver", 7) == 0) //solver
 		{
 			if (strncmp(argv[++i], "nn", 2) == 0)
@@ -174,7 +172,7 @@ void parse_args(Instance* inst, int argc, char** argv)
 			else if (strncmp(argv[i], "hard_fixing", 11) == 0)
 				inst->solver.id = HARD_FIXING;
 			else
-				print_error("%d, solver not recognized", __LINE__);
+				print_error("solver not recognized", __LINE__);
 			continue;
 		}
 	}
@@ -289,9 +287,11 @@ void print_points(Instance* inst)
 		printf("%f, %f \n", inst->points[i].x, inst->points[i].y);
 }
 
-void print_error(const char* msg)
+void print_error(const char* msg, const int line)
 {
-	printf("ERROR: %d", msg);
+	printf("\n===========================================================");
+	printf("\nERROR at line %d: %s", line, msg);
+	printf("\n===========================================================\n");
 	exit(1);
 }
 
@@ -375,7 +375,7 @@ void plot_generator(Instance* inst, int n_edges) {
 	{
 		fclose(out_lines);
 		fclose(out_points);
-		print_error("Error in opening output data file");
+		print_error("Error in opening output data file", __LINE__); 
 	}
 	//print points
 	for (int i = 0; i < inst->nnodes - 1; i++) {
@@ -424,7 +424,7 @@ void print_points_file(Point* points, int n, FILE* out)
 Instance* generate_test_bed(int seed, int n_instances, int n_points) {
 	FILE* out = fopen("../../Traveling-Salesman-Optimization/data/test_bed.txt", "w");
 	if (out == NULL)
-		print_error("Error in opening output data file");
+		print_error("Error in opening output data file", __LINE__);
 	Instance* inst_set = CALLOC(n_instances, Instance);
 	srand(seed);
 	for (int i = 0; i < n_instances; i++) {
@@ -472,7 +472,7 @@ void file_perf_prof(int n_instances, int n_points, int seed) {
 	// generate n_instances random instances
 	FILE* out = fopen("../data/PerfProf.txt", "w");
 	if (out == NULL)
-		print_error("Error in opening output data file");
+		print_error("Error in opening output data file", __LINE__);
 	Instance* set = generate_test_bed(seed, n_instances, n_points);
 	fprintf(out, "%d nearest_neighbor allstart\n", 2);
 	for (int i = 0; i < n_instances; i++) {

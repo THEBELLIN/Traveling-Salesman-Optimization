@@ -6,12 +6,12 @@
 #include "heuristics.h"
 
 //================HYPERPARAMETERS================
-#define POP_SIZE 1000		//population size
-#define AUTOMATIC_PASS 500  //number of best individuals that automatically pass the selection phase
-#define N_PARENTS 500		//number of parents chosen at each iteration
-#define N_CHILDREN 250		//number of children generated at each iteration
-#define N_RAND 100			//number of randomly generated solutions at the start of the genetic algorithm
-#define N_NN 400			//number of generated solutions with nearest neighbour at the start of the genetic algorithm
+#define POP_SIZE 100		//population size
+#define AUTOMATIC_PASS 50   //number of best individuals that automatically pass the selection phase
+#define N_PARENTS 50		//number of parents chosen at each iteration
+#define N_CHILDREN 25		//number of children generated at each iteration
+#define N_RAND 10			//number of randomly generated solutions at the start of the genetic algorithm
+#define N_NN 40 			//number of generated solutions with nearest neighbour at the start of the genetic algorithm
 #define P_MUTATION 0.05		//probability of mutation
 
 //================STRUCTS==================

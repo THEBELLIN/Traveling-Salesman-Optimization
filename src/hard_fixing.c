@@ -15,7 +15,7 @@ void hard_fixing(Instance* inst)
 	// a questo punto bestsol is initialized and has a best cost initialized
 	nearest_neighbor_grasp_random(inst, 0); //TODO fix right now uses same p1 as "percentage"
 	two_opt(inst, inst->bestsol);
-	inst->bestcost = calculateCost(inst, inst->bestsol);
+	inst->bestcost = get_cost(inst, inst->bestsol);
 	printf("heuristic solution cost %f", inst->bestcost);
 
 	// open CPLEX model

@@ -5,7 +5,7 @@
 
 void genetic(Instance* inst)
 {
-	//first 1000 are population, 
+	//first 100 are population, 
 	individual* population = MALLOC(POP_SIZE + N_CHILDREN, individual);
 	int added = 0;
 
@@ -24,7 +24,7 @@ void genetic(Instance* inst)
 		added = 2;
 	}
 
-	//populate 98 (or 100) more at random
+	//populate 8 (or 10) more at random
 	for (int i = added; i < N_RAND; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
@@ -32,8 +32,8 @@ void genetic(Instance* inst)
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}
 
-	//populate other 900 using intelligient solutions
-	//400 nearest neighbor grasp 2
+	//populate other 90 using intelligient solutions
+	//40 nearest neighbor grasp 2
 	for (int i = N_RAND; i < N_RAND + N_NN; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
@@ -45,7 +45,7 @@ void genetic(Instance* inst)
 		population[i].fitness = get_fitness(inst, population[i].genes);
 	}
 
-	//500 extramileage grasp 2 with p=0.1
+	//50 extramileage grasp 2 with p=0.1
 	for (int i = N_RAND + N_NN; i < POP_SIZE; i++)
 	{
 		population[i].genes = MALLOC(inst->nnodes + 1, int);
@@ -67,12 +67,15 @@ void genetic(Instance* inst)
 
 	//genetic algorithm
 	int it = 0;
-	while (time(NULL) - inst->tstart < inst->time_limit)
+	while ((time(NULL) - inst->tstart) < inst->time_limit)
 	{
 		printf("\niteration %d", it);
 		int* parents = MALLOC(N_PARENTS, int);
+		printf("\nchoosing parents");
 		choose_parents(population, parents, N_PARENTS);
+		printf("\ngenerating children");
 		generate_children(inst, population, parents, N_PARENTS, N_CHILDREN, inst->nnodes);
+		printf("\nselecting survivors");
 		selection(population, POP_SIZE + N_CHILDREN, POP_SIZE);
 		individual* champ = get_champion(population, POP_SIZE);
 		printf("\niteration: %d, champion fitness: %f", it, 1000 / champ->fitness);
