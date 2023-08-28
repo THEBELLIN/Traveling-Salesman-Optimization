@@ -146,20 +146,15 @@ void extra_mileage_det(Instance* inst)
         utilized[starting_points[i]] = 1;
     }
     inst->currsol[n_starting] = starting_points[0];
-    // set remaining points
+    //set remaining points
     int k = 0;
-    for (int i = n_starting + 1; i < n; i++)
+    for (int i = n_starting + 1; i < n + 1; i++)
     {
         while (utilized[k] == 1)
             k++;
         inst->currsol[i] = k;
         utilized[k] = 1;
     }
-    // Include the last unused node in the solution
-    while (utilized[k] == 1)
-        k++;
-    inst->currsol[n] = k;
-
     free(utilized);
 
     //untill all nodes are added
@@ -290,19 +285,15 @@ void extra_mileage_grasp2(Instance* inst)
         utilized[starting_points[i]] = 1;
     }
     inst->currsol[n_starting] = starting_points[0];
-    // set remaining points
+    //set remaining points
     int k = 0;
-    for (int i = n_starting + 1; i < n; i++)
+    for (int i = n_starting + 1; i < n + 1; i++)
     {
         while (utilized[k] == 1)
             k++;
         inst->currsol[i] = k;
         utilized[k] = 1;
     }
-    // Include the last unused node in the solution
-    while (utilized[k] == 1)
-        k++;
-    inst->currsol[n] = k;
     free(utilized);
     //untill all nodes are added
     while (current_nodes < n)
@@ -426,19 +417,15 @@ void extra_mileage_grasp3(Instance* inst)
         utilized[starting_points[i]] = 1;
     }
     inst->currsol[n_starting] = starting_points[0];
-    // set remaining points
+    //set remaining points
     int k = 0;
-    for (int i = n_starting + 1; i < n; i++)
+    for (int i = n_starting + 1; i < n + 1; i++)
     {
         while (utilized[k] == 1)
             k++;
         inst->currsol[i] = k;
         utilized[k] = 1;
     }
-    // Include the last unused node in the solution
-    while (utilized[k] == 1)
-        k++;
-    inst->currsol[n] = k;
     free(utilized);
 
     //untill all nodes are added
@@ -931,7 +918,7 @@ void next_bestsol(Instance* inst, int it)
 
     invert_nodes(inst->currsol, best_arc + 1, best_arc2); // reverse the sub-tour between best_arc and best_arc2
     inst->currcost += best_delta;
-    inst->currcost = get_cost(inst, inst->currsol);// aggiunto questa riga per coerenza dei costi che sono sbagliati ma non capisco perchè
+   // inst->currcost = get_cost(inst, inst->currsol);// aggiunto questa riga per coerenza dei costi che sono sbagliati ma non capisco perchè
     // if (inst->currcost < inst->bestcost) //if new solution is best found, save it
      //{
      //    copy_array(inst->currsol, inst->bestsol, inst->nnodes + 1);
@@ -954,6 +941,8 @@ void tabu_search(Instance* inst)
     int time_elapsed = time(NULL) - inst->tstart;
     while (time_elapsed < inst->time_limit)
     {
+        copy_array(inst->bestsol, inst->currsol, inst->nnodes + 1);
+        inst->currcost = inst->bestcost;
         next_bestsol(inst, it);
         it++;
         time_elapsed = time(NULL) - inst->tstart;
