@@ -56,8 +56,8 @@ void swap(int* array, int ind1, int ind2) {
 void swap_individual(individual* population, int i1, int i2)
 {
     individual temp = population[i1];
-    population[i2] = population[i1];
-    population[i1] = temp; 
+    population[i1] = population[i2];
+    population[i2] = temp; 
 
 }
 

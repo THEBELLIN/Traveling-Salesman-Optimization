@@ -188,22 +188,22 @@ void normalize_fitness(individual* population)
 //generates children after population in the same array
 void generate_children(Instance* inst, individual* population, int* parents, const int nparents, const int nchild, const int nnodes)
 {
-	int n_child = 0;
 	int i = 0;
 	for (int c = 0; c < nchild; c++)
 	{
-		int p = rand01();
+		double p = rand01();
 		if (p < P_MUTATION)
 		{
-			mutation(inst, population, i, n_child);
+			printf("\nmutation");
+			mutation(inst, population, i, c);
 			i++;
 		}
 		else
 		{
 			int j = (i + 1) % nparents; //%for odd number of parents
 			i = (i + 2) % nparents;
-			crossover(inst, population, parents[i], parents[j], n_child);
-			n_child++;
+			printf("\ncrossover between %d and %d", parents[i], parents[j]);
+			crossover(inst, population, parents[i], parents[j], c);
 		}
 	}
 }
@@ -263,8 +263,8 @@ void crossover(Instance* inst, individual* population, const int parent1, const 
 
 void mutation(Instance* inst, individual* population, const int parent, const int n_child)
 {
-	copy_array(&population[parent], &population[n_child], inst->nnodes + 1);
-	kick(inst, &population[n_child]);
+	copy_array(&population[parent], &population[POP_SIZE + n_child], inst->nnodes + 1);
+	kick(inst, &(population[POP_SIZE + n_child].genes[0]));
 }
 
 individual* get_champion(individual* population, const int size)
