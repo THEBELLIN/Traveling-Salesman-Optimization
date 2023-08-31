@@ -69,13 +69,13 @@ void genetic(Instance* inst)
 	int it = 0;
 	while ((time(NULL) - inst->tstart) < inst->time_limit)
 	{
-		printf("\niteration %d", it);
+		//printf("\niteration %d", it);
 		int* parents = MALLOC(N_PARENTS, int);
-		printf("\nchoosing parents");
+		//printf("\nchoosing parents");
 		choose_parents(population, parents, N_PARENTS);
-		printf("\ngenerating children");
+		//printf("\ngenerating children");
 		generate_children(inst, population, parents, N_PARENTS, N_CHILDREN, inst->nnodes);
-		printf("\nselecting survivors");
+		//printf("\nselecting survivors");
 		selection(population, POP_SIZE + N_CHILDREN, POP_SIZE);
 		individual* champ = get_champion(population, POP_SIZE);
 		printf("\niteration: %d, champion fitness: %f", it, 1000 / champ->fitness);
@@ -194,7 +194,7 @@ void generate_children(Instance* inst, individual* population, int* parents, con
 		double p = rand01();
 		if (p < P_MUTATION)
 		{
-			printf("\nmutation");
+			//printf("\nmutation");
 			mutation(inst, population, i, c);
 			i++;
 		}
@@ -202,7 +202,7 @@ void generate_children(Instance* inst, individual* population, int* parents, con
 		{
 			int j = (i + 1) % nparents; //%for odd number of parents
 			i = (i + 2) % nparents;
-			printf("\ncrossover between %d and %d", parents[i], parents[j]);
+			//printf("\ncrossover between %d and %d", parents[i], parents[j]);
 			crossover(inst, population, parents[i], parents[j], c);
 		}
 	}
@@ -262,9 +262,10 @@ void crossover(Instance* inst, individual* population, const int parent1, const 
 }
 
 void mutation(Instance* inst, individual* population, const int parent, const int n_child)
-{
-	copy_array(&population[parent], &population[POP_SIZE + n_child], inst->nnodes + 1);
+{	//call with 39, 20 causes pop[9] to get fucked up
+	copy_array(&population[parent].genes[0], &population[POP_SIZE + n_child].genes[0], inst->nnodes + 1);
 	kick(inst, &(population[POP_SIZE + n_child].genes[0]));
+	population[POP_SIZE + n_child].fitness = get_fitness(inst, &population[POP_SIZE + n_child].genes[0]);
 }
 
 individual* get_champion(individual* population, const int size)
