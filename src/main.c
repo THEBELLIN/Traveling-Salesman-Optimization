@@ -15,6 +15,7 @@ int main(int argc, char** argv)
 	srand(instance.randomseed);
 	parse_TSPLIB(&instance);
 	initialize_cost(&instance);
+	print_params(&instance);
 	solve(&instance);
 	//plot_generator(&instance, instance.nnodes);
 	free_instance(&instance);

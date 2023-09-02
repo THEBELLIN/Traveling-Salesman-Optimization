@@ -225,9 +225,9 @@ void check_params(Instance* inst)
 void parse_TSPLIB(Instance* inst)
 {
 	FILE* fin = fopen(inst->inputfile, "r");
-	printf("%d", inst->inputfile);
+	printf("%s", inst->inputfile);
 	if (fin == NULL)
-		print_error("input file not opened correctly");
+		print_error("input file not opened correctly", __LINE__);
 
 	char line[180];
 
@@ -238,13 +238,13 @@ void parse_TSPLIB(Instance* inst)
 		if (strncmp(par, "NODE_COORD_SECTION", 18) == 0)
 		{
 			if (inst->nnodes < 0)
-				print_error("Starting points coordinate before having the dimension");
+				print_error("Starting points coordinate before having the dimension", __LINE__);
 			break;
 		}
 		if (strcmp(par, "DIMENSION", 9) == 0 )
 		{
 			if (inst->nnodes > 0)
-				print_error("Dimension of dataset already set");
+				print_error("Dimension of dataset already set", __LINE__);
 			int n = atoi(strtok(NULL, " :"));
 			inst->nnodes = n; 
 			continue;
