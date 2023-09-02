@@ -60,7 +60,7 @@ void initialize_instance(Instance* inst)
 void parse_args(Instance* inst, int argc, char** argv)
 {
 	if (argc < 2)
-		print_error("Not enough arguments in the command line while launching the program");
+		print_error("Not enough arguments in the command line while launching the program", __LINE__);
 	int arg = 2;
 	for (int i = 1; i < argc; i++)
 	{
@@ -339,7 +339,7 @@ Point* generate_random_points_range(int n, double range_min, double range_max)
 	{
 		fclose(out_lines);
 		fclose(out_points);
-		print_error("Error in opening output data file");
+		print_error("Error in opening output data file", __LINE__);
 	}
 
 	for (int i = 0; i < inst->nnodes - 1; i++) {

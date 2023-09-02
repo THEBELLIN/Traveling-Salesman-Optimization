@@ -71,7 +71,8 @@ void local_branching(Instance* inst)
 		}
 		int izero = 0;
 		int nrows = CPXgetnumrows(env, lp);// to get the index of the local branch constraint
-		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0])) print_error("Error in adding row for local branchin");
+		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0])) 
+			print_error("Error in adding row for local branching", __LINE__);
 
 		//set the time to spend getting a better solution
 		if (timelimit - (time(NULL) - start) < time_per_call) {
@@ -83,7 +84,8 @@ void local_branching(Instance* inst)
 		//CALL CALLBACK FUNCTION TO FIND AN OPTIMIZED SOLUTION solition saved in bestsol if better than the previous solution found
 		benders_loop2(inst, env, lp);
 		//remove the local branching constraint added
-		if (CPXdelrows(env, lp, nrows, nrows)) print_error("error in deleating a constraint");
+		if (CPXdelrows(env, lp, nrows, nrows)) 
+			print_error("error in deleating a constraint", __LINE__);
 		printf("Solution at time %f has cost %f\n", time(NULL) - start, inst->bestcost);
 	}// while
 

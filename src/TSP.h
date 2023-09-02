@@ -87,7 +87,7 @@ typedef struct
 
 //=====================functions=======================================
 void parse_TSPLIB(Instance*);
-void print_error(const char*);
+void print_error(const char*, const int);
 void initialize_instance(Instance*);
 bool check_feasibility(int*, int);
 void parse_args(Instance*, int, char**);

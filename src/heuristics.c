@@ -91,7 +91,7 @@ void extra_mileage_det(Instance* inst)
 {
     //construct cost matrix if not already done
     if (inst->cost == NULL)
-        print_error("Cost matrix not initialized");
+        print_error("Cost matrix not initialized", __LINE__);
 
     //select starting indexes
     int n = inst->nnodes;
@@ -134,7 +134,7 @@ void extra_mileage_det(Instance* inst)
         free(conv);
     }
     else
-        print_error("Wrong starting flag in extra mileage");
+        print_error("Wrong starting flag in extra mileage", __LINE__);
 
     //extra mileage loop
     int current_nodes = n_starting;
@@ -218,7 +218,7 @@ void extra_mileage(Instance* inst)
     else if (inst->solver.id == EM_GRASP2 || inst->solver.id == EM_GRASP3)
         grasp_extra_iter(inst);
     else
-        print_error("Wrong parameter for extra mileage algorithm");
+        print_error("Wrong parameter for extra mileage algorithm", __LINE__);
 
 
 }
@@ -229,7 +229,7 @@ void extra_mileage_grasp2(Instance* inst)
 {
     //construct cost matrix if not already done
     if (inst->cost == NULL)
-        print_error("Cost matrix not initialized");
+        print_error("Cost matrix not initialized", __LINE__);
 
     //select starting indexes
     int n = inst->nnodes;
@@ -273,7 +273,7 @@ void extra_mileage_grasp2(Instance* inst)
         free(conv);
     }
     else
-        print_error("Wrong starting flag in extra mileage");
+        print_error("Wrong starting flag in extra mileage", __LINE__);
 
     //extra mileage loop
     int current_nodes = n_starting;
@@ -360,7 +360,7 @@ void extra_mileage_grasp3(Instance* inst)
 {
     //construct cost matrix if not already done
     if (inst->cost == NULL)
-        print_error("Cost matrix not initialized");
+        print_error("Cost matrix not initialized", __LINE__);
 
     //select starting indexes
     int n = inst->nnodes;
@@ -405,7 +405,7 @@ void extra_mileage_grasp3(Instance* inst)
         free(conv);
     }
     else
-        print_error("Wrong starting flag in extra mileage");
+        print_error("Wrong starting flag in extra mileage", __LINE__);
 
     //extra mileage loop
     int current_nodes = n_starting;
@@ -538,7 +538,7 @@ void nearest_neighbor(Instance* inst)
     else if (inst->solver.id == ALL_START_NN)
         nearest_neighbor_allstart(inst);
     else
-        print_error("Wrong parameter for extra mileage algorithm");
+        print_error("Wrong parameter for extra mileage algorithm", __LINE__);
 
     //save the cost
     inst->currcost = get_cost(inst, inst->currsol);
@@ -551,7 +551,7 @@ void nearest_neighbor(Instance* inst)
 void nearest_neighbor_det(Instance* inst, int start)
 {
     if (start < 0)
-        print_error("Invalid choice of the start node");
+        print_error("Invalid choice of the start node", __LINE__);
 
     int n = inst->nnodes;
     int len = 0;
@@ -703,7 +703,7 @@ void nearest_neighbor_grasp2(Instance* inst, int start) {
 
 void nearest_neighbor_grasp3(Instance* inst, int start) {
     if (start < 0)
-        print_error("Invalid choice of the start node");
+        print_error("Invalid choice of the start node", __LINE__);
     int n = inst->nnodes;
     int len = 0;
     double costo = 0;
@@ -796,7 +796,7 @@ void nearest_neighbor_grasp_random(Instance* inst, int start)
 {
     double p2 = inst->solver.p1;
     if (start < 0)
-        print_error("Invalid choice of the start node");
+        print_error("Invalid choice of the start node", __LINE__);
 
     int n = inst->nnodes;
     int len = 0;

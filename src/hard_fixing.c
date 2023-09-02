@@ -55,7 +55,7 @@ void hard_fixing(Instance* inst)
 			if (rand01() < percentage) {
 				int pos = xpos(inst->bestsol[i], inst->bestsol[i + 1], inst);
 				if (CPXchgbds(env, lp, 1, &pos, &lb, &one))
-					print_error("error in changing the bound");
+					print_error("error in changing the bound", __LINE__);
 			}
 		}
 
@@ -73,7 +73,7 @@ void hard_fixing(Instance* inst)
 		for (int i = 0; i < inst->ncols; i++) {
 			int pos = i;
 			if (CPXchgbds(env, lp, 1, &pos, &lb, &zero))
-				print_error("error in changing the bound");
+				print_error("error in changing the bound", __LINE__);
 		}
 		printf("Solution at time %f has cost %f\n", time(NULL) - start, inst->bestcost);
 	}// while
@@ -95,7 +95,7 @@ void add_mip_start(Instance* inst, CPXENVptr env, CPXLPptr lp) {
 	int effortlevel = CPX_MIPSTART_NOCHECK;
 	int beg = 0;
 	if (CPXaddmipstarts(env, lp, 1, inst->ncols, &beg, ind, xheu, &effortlevel, NULL))
-		print_error("CPXaddmipstarts() error");
+		print_error("CPXaddmipstarts() error", __LINE__);
 	free(ind);
 	free(xheu);
 

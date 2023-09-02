@@ -472,7 +472,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 	if (contextid == CPX_CALLBACKCONTEXT_CANDIDATE)
 	{
 		if (CPXcallbackgetcandidatepoint(context, xstar, 0, inst->ncols - 1, &objval))
-			print_error("CPXcallbackgetcandidatepoint error");
+			print_error("CPXcallbackgetcandidatepoint error", __LINE__);
 
 		//allocate memory for results
 		int* succ = MALLOC(inst->nnodes, int);
@@ -502,7 +502,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 			{
 				int izero = 0;
 				if (CPXcallbackrejectcandidate(context, 1, nnz, &rhs, &sense, &izero, index, value))
-					print_error("CPXcallbackrejectcandidate() error"); // reject the solution and adds one cut 
+					print_error("CPXcallbackrejectcandidate() error", __LINE__); // reject the solution and adds one cut 
 			}
 
 		}
@@ -516,7 +516,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 			ind[j] = j;
 		//TODO maybe add only if it's better than incumbent
 		if (CPXcallbackpostheursoln(context, inst->ncols, ind, xheu, objheu, CPXCALLBACKSOLUTION_NOCHECK)) 
-			print_error("CPXcallbackpostheursoln() error");
+			print_error("CPXcallbackpostheursoln() error", __LINE__);
 		free(ind); 
 
 		//free allocated memory
@@ -531,7 +531,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 	if (contextid == CPX_CALLBACKCONTEXT_RELAXATION)
 	{
 		if (CPXcallbackgetrelaxationpoint(context, xstar, 0, inst->ncols - 1, &objval))
-			print_error("CPXcallbackgetrelaxationpoint error");
+			print_error("CPXcallbackgetrelaxationpoint error", __LINE__);
 
 		int local = 0;
 		int purgeable = CPX_USECUT_FILTER;
