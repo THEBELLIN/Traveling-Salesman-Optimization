@@ -20,7 +20,7 @@ int TSPopt(Instance* inst)
 	build_model(inst, env, lp);
 
 	// Cplex's parameter setting
-	CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON);
+	
 	if (inst->verbose > 10)
 	{
 		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
@@ -50,15 +50,15 @@ int TSPopt(Instance* inst)
 	//benders_loop(inst, env, lp);
 	
 	//just print one line with lb at every iteration
+	if (inst->verbose >= 0)
+	{
+		CPXwriteprob(env, lp, "../../Traveling-Salesman-Optimization/data/model.lp", NULL);
+	}
 
 	// free and close cplex model   
 	CPXfreeprob(env, &lp);
 	CPXcloseCPLEX(&env);
 	
-	if (inst->verbose >= 0)
-	{
-		CPXwriteprob(env, lp, "../../Traveling-Salesman-Optimization/data/model.lp", NULL);
-	}
 
 	return 0; 
 }
@@ -216,7 +216,7 @@ int mip_infeasible(CPXENVptr env, CPXLPptr lp)
 void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 {
 	//time elapsed
-	double time_elapsed = time(NULL) - inst->tstart; 
+	double time_elapsed = time(NULL) - inst->tstart;
 
 	//allocate memory for results
 	int* succ = MALLOC(inst->nnodes, int);
@@ -245,24 +245,34 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 			print_error("%d, CPXgetx() error", __LINE__);
 		}
 		build_sol(xstar, inst, succ, comp, &ncomp);
-		
+
 		//check number of connected components
 		if (ncomp > 1)
 		{
 			add_SEC(inst, ncomp, comp, env, lp);
 			double patched_cost, prev_ub;
-			patched_cost = patching(inst, ncomp, comp, succ); 
+			patched_cost = patching(inst, ncomp, comp, succ);
 
 			//set CPLEX new cutoff (Upper Bound) to prune early edges that are worse than this value
-			CPXgetdblparam(env, CPXPARAM_MIP_Tolerances_UpperCutoff, &prev_ub); 
+			CPXgetdblparam(env, CPXPARAM_MIP_Tolerances_UpperCutoff, &prev_ub);
 			if (patched_cost < prev_ub)
 			{
-				CPXsetdblparam(env, CPXPARAM_MIP_Tolerances_UpperCutoff, patched_cost); 
-				printf("previous upperbound was: %f, new computed is %f\n", prev_ub, patched_cost); 
-			}	  
+				CPXsetdblparam(env, CPXPARAM_MIP_Tolerances_UpperCutoff, patched_cost);
+				if (inst->verbose > 3) {
+					printf("previous upperbound was: %f, new computed is %f\n", prev_ub, patched_cost);
+				}
+
+			}
 		}
 		time_elapsed = time(NULL) - inst->tstart;
 		free(xstar);
+	}
+	if (inst->bestcost > mip_value(env, lp)) {
+		inst->bestcost = mip_value(env, lp);
+		transform_in_perm_and_save(succ, inst);
+		if (inst->verbose > 3) {
+			printf("\nUpdated cost: %f", inst->bestcost);
+		}
 	}
 
 	//free
