@@ -17,10 +17,11 @@ int TSPopt(Instance* inst)
 		print_error("%d, CPXcreateprob() error", __LINE__);
 	}
 
+
 	build_model(inst, env, lp);
 
 	// Cplex's parameter setting
-	CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
+	//CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
 	if (inst->verbose > 10)
 	{
 		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
