@@ -1,23 +1,23 @@
 #include "local_branching.h"
 
-void local_branching(Instance* inst) 
-{
-	double timelimit = inst->time_limit;
+#include "local_branching.h"
+
+void local_branching(Instance* inst) {
+	int k = 20;
 	// define the fraction of time to spend for every call
-	double time_per_call = timelimit / 10.0;
-	double start = time(NULL);
+	double time_per_call = inst->timelimit / 5.0;
+	//double start = time(NULL);
+	//printf("time start %f", start);
+	inst->time_limit = 50;
 
-	inst->time_limit = time_per_call;
-
-
+	
 	// initialize with an heuristic method x_0 first solution
 	// a questo punto bestsol is initialized and has a best cost initialized
-	// TODO use another heuristic giving it time per call as timelimit
-	nearest_neighbor_grasp_random(inst, 0); //p1 used for this
-	two_opt(inst, inst->bestsol);
-	inst->bestcost = get_cost(inst, inst->bestsol);
-	printf("heuristic solution cost %f", inst->bestcost);
 
+	vns(inst);
+	double start = time(NULL);
+	printf("\nheuristic solution cost %f", inst->bestcost);
+	inst->time_limit = time_per_call;
 	// open CPLEX model
 	int error;
 	CPXENVptr env = CPXopenCPLEX(&error);
@@ -38,7 +38,7 @@ void local_branching(Instance* inst)
 	// build the degree model
 	build_model(inst, env, lp);
 	//----------------------
-	printf("fine building model\n");
+	//printf("fine building model\n");
 	//set time limit
 	CPXsetdblparam(env, CPX_PARAM_TILIM, timelimit - (time(NULL) - start));
 	//----------------------
@@ -51,10 +51,11 @@ void local_branching(Instance* inst)
 	sprintf(cname[0], "local branching");
 
 
-	int k = K_NEIGHBOURHOOD; // number of neighbourhood;
+	//int k = 20; // number of neighbourhood;
 
-
+	inst->ncols = CPXgetnumcols(env, lp);
 	//while cycle untill i have time
+	int iter = 0;
 	while (time(NULL) < start + timelimit) {
 		// post a solution
 		add_mip_start(inst, env, lp, inst->bestsol);
@@ -71,8 +72,7 @@ void local_branching(Instance* inst)
 		}
 		int izero = 0;
 		int nrows = CPXgetnumrows(env, lp);// to get the index of the local branch constraint
-		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0])) 
-			print_error("Error in adding row for local branching", __LINE__);
+		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0])) print_error("Error in adding row for local branchin", __LINE__);
 
 		//set the time to spend getting a better solution
 		if (timelimit - (time(NULL) - start) < time_per_call) {
@@ -84,8 +84,7 @@ void local_branching(Instance* inst)
 		//CALL CALLBACK FUNCTION TO FIND AN OPTIMIZED SOLUTION solition saved in bestsol if better than the previous solution found
 		benders_loop2(inst, env, lp);
 		//remove the local branching constraint added
-		if (CPXdelrows(env, lp, nrows, nrows)) 
-			print_error("error in deleating a constraint", __LINE__);
+		if (CPXdelrows(env, lp, nrows, nrows)) print_error("error in deleating a constraint", __LINE__);
 		printf("Solution at time %f has cost %f\n", time(NULL) - start, inst->bestcost);
 	}// while
 
