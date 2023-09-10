@@ -1,23 +1,22 @@
 #include "hard_fixing.h"
 
-void hard_fixing(Instance* inst) 
+void hard_fixing(Instance* inst)
 {
-	double percentage = inst->solver.p1;
+	double percentage = 0.6;
 	double timelimit = inst->time_limit;
 	// define the fraction of time to spend for every call
-	double time_per_call = timelimit / 10.0;
-	double start = time(NULL);
-	printf("time start %f", start);
-	inst->time_limit = time_per_call;
-	printf("time limit %f ", inst->time_limit);
+	double time_per_call = timelimit / 5.0;
+	//double start = time(NULL);
+	//printf("time start %f", start);
+	inst->time_limit = 100;
 
+	double start = time(NULL);
 	// initialize with an heuristic method x_0 first solution
 	// a questo punto bestsol is initialized and has a best cost initialized
-	nearest_neighbor_grasp_random(inst, 0); //TODO fix right now uses same p1 as "percentage"
-	two_opt(inst, inst->bestsol);
-	inst->bestcost = get_cost(inst, inst->bestsol);
-	printf("heuristic solution cost %f", inst->bestcost);
 
+	vns(inst);
+	printf("\nheuristic solution cost %f", inst->bestcost);
+	inst->time_limit = time_per_call;
 	// open CPLEX model
 	int error;
 	CPXENVptr env = CPXopenCPLEX(&error);
@@ -42,7 +41,7 @@ void hard_fixing(Instance* inst)
 	//set time limit
 	CPXsetdblparam(env, CPX_PARAM_TILIM, timelimit - (time(NULL) - start));
 	//----------------------
-
+	inst->ncols = CPXgetnumcols(env, lp);
 	//while cycle untill i have time
 	while (time(NULL) < start + timelimit) {
 		//add the best soultion found as a start to cplex
@@ -100,7 +99,7 @@ void add_mip_start(Instance* inst, CPXENVptr env, CPXLPptr lp) {
 	free(xheu);
 
 }
-// same as benders but saves the best solution in bestsol
+
 void benders_loop2(Instance* inst, CPXENVptr env, CPXLPptr lp)
 {
 	//time elapsed
@@ -108,9 +107,9 @@ void benders_loop2(Instance* inst, CPXENVptr env, CPXLPptr lp)
 	//allocate mamory for results
 	int* succ = MALLOC(inst->nnodes, int);
 	int* comp = MALLOC(inst->nnodes, int);
-	int ncomp;
+	int ncomp = 2;
 	//Benders' loop
-	while (time_elapsed < inst->time_limit)
+	while (time_elapsed < inst->time_limit && ncomp>1)
 	{
 		//set time limit
 		CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit - time_elapsed);
