@@ -171,14 +171,14 @@ void extra_mileage_det(Instance* inst)
             e.from = inst->currsol[i];
             e.to = inst->currsol[i + 1];
             //for all points not already considered
-            for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->bestsol[j]
+            for (int j = current_nodes + 1; j < n + 1; j++) //considering point inst->currsol[j]
             {
-                //printf("\nconsidering edge %d -> %d against point %d", e.from, e.to, inst->bestsol[j]);
+                //printf("\nconsidering edge %d -> %d against point %d", e.from, e.to, inst->currsol[j]);
                 extra_cost = -(COST(e.from, e.to)) + COST(e.from, inst->currsol[j]) + COST(inst->currsol[j], e.to);
                 if (extra_cost < min_extra_cost)
                 {
                     /*printf("removed cost: %f", COST(e.from, e.to));
-                    printf("added costs cost: %f, %f", COST(e.from, inst->bestsol[j]), COST(inst->bestsol[j], e.to));
+                    printf("added costs cost: %f, %f", COST(e.from, inst->currsol[j]), COST(inst->currsol[j], e.to));
                     printf("\nmin extra cost found: %f, previous was %f. This is point %d between %d and %d", extra_cost, min_extra_cost, inst->bestsol[j], e.from, e.to);*/
                     min_extra_cost = extra_cost;
                     new_point_index = j;

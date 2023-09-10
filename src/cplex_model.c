@@ -30,8 +30,15 @@ int TSPopt(Instance* inst)
 
 	//TODO maybe add mipstart
 
-	callback_solution(inst, env, lp);
+	//benders
+	if(inst->solver.id==CPLEX_BENDERS)
+		benders_loop(inst, env, lp);
+	//callback
+	else
+		callback_solution(inst, env, lp);
 
+	//TODO ADD SAVING BESTSOL FOUND TO INST
+	
 	// use the optimal solution found by CPLEX
 	/*
 	
@@ -46,8 +53,6 @@ int TSPopt(Instance* inst)
 		}
 	}
 	*/
-	//TODO divide in separate functions with wrapper to choose the solver method
-	//benders_loop(inst, env, lp);
 	
 	//just print one line with lb at every iteration
 
@@ -242,7 +247,7 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 		double* xstar = CALLOC(ncols, double);
 		if (CPXgetx(env, lp, xstar, 0, ncols - 1))
 		{
-			print_error("%d, CPXgetx() error", __LINE__);
+			print_error("CPXgetx() error", __LINE__);
 		}
 		build_sol(xstar, inst, succ, comp, &ncomp);
 		
@@ -445,7 +450,8 @@ double patching(Instance* inst, int ncomp, int* comp, int* succ)
 	}
 	return cost;
 
-	//TODO maybe add 2-opt before return to make better incumbent
+	//TODO maybe add 2-opt before return to make better incumbent but before need to do succ to currsol function
+	//maybe too time consuming O(n^2)
 }
 
 void callback_solution(Instance* inst, CPXENVptr env, CPXLPptr lp)

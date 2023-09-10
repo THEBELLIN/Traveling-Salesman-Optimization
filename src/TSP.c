@@ -153,10 +153,8 @@ void parse_args(Instance* inst, int argc, char** argv)
 				inst->solver.id = TWO_OPT;
 			else if (strncmp(argv[i], "all_start_nn", 12) == 0)
 				inst->solver.id = ALL_START_NN;
-			else if (strncmp(argv[i], "vns", 3) == 0) {
+			else if (strncmp(argv[i], "vns", 3) == 0) 
 				inst->solver.id = VNS;
-				//printf("fatto");
-			}
 			else if (strncmp(argv[i], "genetic", 7) == 0)
 				inst->solver.id = GEN;
 			else if (strncmp(argv[i], "simann", 6) == 0)
