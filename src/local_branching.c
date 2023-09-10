@@ -5,7 +5,7 @@
 void local_branching(Instance* inst) {
 	int k = 20;
 	// define the fraction of time to spend for every call
-	double time_per_call = inst->timelimit / 5.0;
+	double time_per_call = inst->time_limit / 5.0;
 	//double start = time(NULL);
 	//printf("time start %f", start);
 	inst->time_limit = 50;
