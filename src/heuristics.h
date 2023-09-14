@@ -40,7 +40,4 @@ int checkNonEqual(int*, int, int);
 double random_two_opt_move(Instance*, int*);
 void simulated_annealing(Instance*);
 
-
-//TODO SPLIT IN DIFFERENT FILES
-
 #endif

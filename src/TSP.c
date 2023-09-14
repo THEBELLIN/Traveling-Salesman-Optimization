@@ -504,7 +504,7 @@ void transform_in_perm_and_save(int* succ, Instance* inst) {
 	}
 }
 
-//TODO check all parameters needed are set in parseargs
+// check all parameters needed are set in parseargs
 void solve(Instance* inst)
 {
 	solver_id sid = inst->solver.id;

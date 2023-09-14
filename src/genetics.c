@@ -258,7 +258,7 @@ void crossover(Instance* inst, individual* population, const int parent1, const 
 
 	free(visited);
 
-	//method2: add remaining nodes with extra mileage TODO
+	//method2: add remaining nodes with extra mileage
 }
 
 void mutation(Instance* inst, individual* population, const int parent, const int n_child)

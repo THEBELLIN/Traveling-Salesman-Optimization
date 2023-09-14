@@ -451,11 +451,10 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 {
 	Instance* inst = (Instance*)userhandle;
 	if (contextid == CPX_CALLBACKCONTEXT_CANDIDATE) return my_callback_candidate(context, contextid, inst);
-	if (contextid == CPX_CALLBACKCONTEXT_RELAXATION) return my_callback_candidate(context, contextid, inst);
+	if (contextid == CPX_CALLBACKCONTEXT_RELAXATION) return my_callback_fractional(context, contextid, inst);
 	print_error("contextid unknownn in my_callback", __LINE__);
 	return 1;
 }
-
 
 static int CPXPUBLIC my_callback_fractional(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle)
 {
