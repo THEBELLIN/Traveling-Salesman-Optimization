@@ -66,7 +66,7 @@ void hard_fixing(Instance* inst)
 			CPXsetdblparam(env, CPX_PARAM_TILIM, time_per_call);
 		inst->tstart = time(NULL);
 		//CALL CALLBACK FUNCTION TO FIND AN OPTIMIZED SOLUTION solition saved in bestsol if better than the previous solution found
-		benders_loop2(inst, env, lp);
+		callback_solution(inst, env, lp);
 		//unfix all previous edges
 		double zero = 0.0;
 		for (int i = 0; i < inst->ncols; i++) {

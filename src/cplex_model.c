@@ -17,8 +17,8 @@ int TSPopt(Instance* inst)
 		print_error("%d, CPXcreateprob() error", __LINE__);
 	}
 
-
 	build_model(inst, env, lp);
+	// ADD A UB WITH HEURSTICS  
 
 	// Cplex's parameter setting
 	//CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
@@ -27,34 +27,17 @@ int TSPopt(Instance* inst)
 		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
 	}
 	CPXsetintparam(env, CPX_PARAM_RANDOMSEED, inst->randomseed);
+	//CPXsetdblparam(env,CPX_PARAM_CUTUP,UB);
 	CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit);
 
-	//TODO maybe add mipstart
 
-	//benders
-	if(inst->solver.id==CPLEX_BENDERS)
-		benders_loop(inst, env, lp);
-	//callback
-	else
-		callback_solution(inst, env, lp);
+	callback_solution(inst, env, lp);
 
-	//TODO ADD SAVING BESTSOL FOUND TO INST
-	
-	// use the optimal solution found by CPLEX
-	/*
 
-	for (int i = 0; i < inst->nnodes; i++)
-	{
-		for (int j = i + 1; j < inst->nnodes; j++)
-		{
-			if (xstar[xpos(i, j, inst)] > 0.5)
-			{
-				printf("  ... x(%3d,%3d) = 1\n", i + 1, j + 1);
-			}
-		}
-	}
-	*/
-	
+
+	//TODO divide in separate functions with wrapper to choose the solver method
+	//benders_loop(inst, env, lp);
+
 	//just print one line with lb at every iteration
 	if (inst->verbose >= 20)
 	{
@@ -64,7 +47,7 @@ int TSPopt(Instance* inst)
 	// free and close cplex model   
 	CPXfreeprob(env, &lp);
 	CPXcloseCPLEX(&env);
-
+	//	printf("inst0,%f", time(NULL) - inst->tstart);
 
 	return 0;
 }
@@ -248,7 +231,7 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 		double* xstar = CALLOC(ncols, double);
 		if (CPXgetx(env, lp, xstar, 0, ncols - 1))
 		{
-			print_error("CPXgetx() error", __LINE__);
+			print_error("%d, CPXgetx() error", __LINE__);
 		}
 		build_sol(xstar, inst, succ, comp, &ncomp);
 
@@ -265,7 +248,7 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 			{
 				CPXsetdblparam(env, CPXPARAM_MIP_Tolerances_UpperCutoff, patched_cost);
 				if (inst->verbose > 3) {
-					printf("\nprevious upperbound was: %f, new computed is %f\n", prev_ub, patched_cost);
+					printf("previous upperbound was: %f, new computed is %f\n", prev_ub, patched_cost);
 				}
 
 			}
@@ -378,6 +361,7 @@ void get_SEC(Instance* inst, const int ncomp, int* comp, int* index, double* val
 
 }
 
+
 double patching(Instance* inst, int ncomp, int* comp, int* succ)
 {
 	while (ncomp > 1)
@@ -453,198 +437,288 @@ double patching(Instance* inst, int ncomp, int* comp, int* succ)
 	double cost = 0;
 	for (int i = 0; i < inst->nnodes; i++)
 	{
+		//	printf("\n i= %d succ= %d", i,succ[i]);
+
 		cost += COST(i, succ[i]);
 	}
 	return cost;
 
-	//TODO maybe add 2-opt before return to make better incumbent but before need to do succ to currsol function
-	//maybe too time consuming O(n^2)
+	//TODO maybe add 2-opt before return to make better incumbent
 }
-
-void callback_solution(Instance* inst, CPXENVptr env, CPXLPptr lp)
-{
-	//get the number of columns
-	int ncols = CPXgetnumcols(env, lp);
-	inst->ncols = ncols;
-
-	//install the callback function
-	if (CPXcallbacksetfunc(env, lp, CPX_CALLBACKCONTEXT_CANDIDATE | CPX_CALLBACKCONTEXT_RELAXATION, my_callback, inst))
-		print_error("%d, CPXcallbacksetfunc() error", __LINE__);
-	//get results
-	//solve the problem
-	int error = CPXmipopt(env, lp);
-	if (error)
-	{
-		printf("CPX error code %d\n", error);
-		print_error("%d, CPXmipopt() error", __LINE__);
-	}
-
-	//allocate memory for results
-	int* succ = MALLOC(inst->nnodes, int);
-	int* comp = MALLOC(inst->nnodes, int);
-	int ncomp = 2;
-
-	//get results
-	ncols = CPXgetnumcols(env, lp);
-	double* xstar = CALLOC(ncols, double);
-	if (CPXgetx(env, lp, xstar, 0, ncols - 1))
-	{
-		print_error("CPXgetx() error", __LINE__);
-	}
-	build_sol(xstar, inst, succ, comp, &ncomp);
-
-	free(xstar);
-
-	if (inst->bestcost > mip_value(env, lp))
-	{
-		inst->bestcost = mip_value(env, lp);
-		transform_in_perm_and_save(succ, inst);
-		if (inst->verbose > 3)
-			printf("\nUpdated cost: %f", inst->bestcost);
-	}
-
-	//free
-	free(comp);
-	free(succ);
-}
-
+/********************************************************************************************************/
 static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle)
+/********************************************************************************************************/
+{
+	Instance* inst = (Instance*)userhandle;
+	if (contextid == CPX_CALLBACKCONTEXT_CANDIDATE) return my_callback_candidate(context, contextid, inst);
+	if (contextid == CPX_CALLBACKCONTEXT_RELAXATION) return my_callback_candidate(context, contextid, inst);
+	print_error("contextid unknownn in my_callback", __LINE__);
+	return 1;
+}
+
+
+static int CPXPUBLIC my_callback_fractional(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle)
 {
 	Instance* inst = (Instance*)userhandle;
 	double* xstar = MALLOC(inst->ncols, double);
 	double objval = CPX_INFBOUND;
 
-	//check if we have integer solution -- LAZY CUT
-	if (contextid == CPX_CALLBACKCONTEXT_CANDIDATE)
+
+
+	//printf("sono qui a user cut");
+	if (CPXcallbackgetrelaxationpoint(context, xstar, 0, inst->ncols - 1, &objval))
+		print_error("CPXcallbackgetrelaxationpoint error", __LINE__);
+
+	int local = 0;
+	int purgeable = CPX_USECUT_FILTER;
+
+	int numcomps = 0;
+	int* elist = MALLOC(2 * inst->ncols, int); // elist contains each pair of vertex such as (1,2), (1,3), (1,4), (2, 3), (2,4), (3,4) so in list becomes: 1,2,1,3,1,4,2,3,2,4,3,4
+	int* compscount = NULL;
+	int* comps = NULL;
+	int k = 0;
+
+	int num_edges = 0;
+	for (int i = 0; i < inst->nnodes; i++)
 	{
-		printf("\nLAZY CUT - INTEGER SOLUTION\n");
-		if (CPXcallbackgetcandidatepoint(context, xstar, 0, inst->ncols - 1, &objval))
-			print_error("CPXcallbackgetcandidatepoint error", __LINE__);
-
-		//allocate memory for results
-		int* succ = MALLOC(inst->nnodes, int);
-		int* comp = MALLOC(inst->nnodes, int);
-		int ncomp;
-		build_sol(xstar, inst, succ, comp, &ncomp);
-
-		//check if the solution is feasible
-		if (ncomp == 1)
-			return;
-
-		//allocate memory for results
-		int* index = CALLOC(inst->ncols, int);
-		double* value = CALLOC(inst->ncols, double);
-		char** cname = CALLOC(1, char*);
-		cname[0] = CALLOC(100, char);
-		int rhs;
-		char sense;
-		int nnz;
-
-		for (int c = 1; c <= ncomp; c++)
+		for (int j = i + 1; j < inst->nnodes; j++)
 		{
-			//maybe use add_SEC with a check for context in order to use addrow or reject sol
-			get_SEC(inst, ncomp, comp, index, value, cname, &rhs, &sense, &nnz, c);
-
-			if (nnz > 0) // means that the solution is infeasible and a violated cut has been found
-			{
-				int izero = 0;
-				if (CPXcallbackrejectcandidate(context, 1, nnz, &rhs, &sense, &izero, index, value))
-					print_error("CPXcallbackrejectcandidate() error", __LINE__); // reject the solution and adds one cut 
-			}
-
+			elist[k++] = i;
+			elist[k++] = j;
+			num_edges++;
 		}
-
-
-
-		//free allocated memory
-
-		free(index);
-		free(value);
-		free(cname[0]);
-		free(cname);
-
 	}
-	
-	//check if we have a fractional solution -- USER CUT
-	if (contextid == CPX_CALLBACKCONTEXT_RELAXATION)
+
+	// Checking whether or not the graph is connected with the fractional solution.
+	if (CCcut_connect_components(inst->nnodes, num_edges, elist, xstar, &numcomps, &compscount, &comps))
 	{
-		printf("\nUSER CUT - FRACTIONAL SOLUTION\n");
-		if (CPXcallbackgetrelaxationpoint(context, xstar, 0, inst->ncols - 1, &objval))
-			print_error("CPXcallbackgetrelaxationpoint error", __LINE__);
-
-		int local = 0;
-		int purgeable = CPX_USECUT_FILTER;
-
-		int numcomps = 0;
-		int* elist = MALLOC(2 * inst->ncols, int); // elist contains each pair of vertex such as (1,2), (1,3), (1,4), (2, 3), (2,4), (3,4) so in list becomes: 1,2,1,3,1,4,2,3,2,4,3,4
-		int* compscount = NULL;
-		int* comps = NULL;
-		int k = 0;
-
-		int num_edges = 0;
-		for (int i = 0; i < inst->nnodes; i++)
-		{
-			for (int j = i + 1; j < inst->nnodes; j++)
-			{
-				elist[k++] = i;
-				elist[k++] = j;
-				num_edges++;
-			}
-		}
-
-		// Checking whether or not the graph is connected with the fractional solution.
-		if (CCcut_connect_components(inst->nnodes, num_edges, elist, xstar, &numcomps, &compscount, &comps))
-		{
-			print_error("%d, CCcut_connect_components() error ", __LINE__);
-		}
-
-		if (numcomps == 1)
-		{
-			relaxation_callback_params params = { .context = context, .inst = inst };
-			// At this point we have a connected graph. This graph could not be a "tsp". We interpret the fractional
-			// solution as capacity of a cut. A cut of a graph G is composed by S and T = V - S where V is the nodes set.
-			// The capacity of the cut is the sum of all ingoing and outgoing edges of the cut. Since we have a TSP,
-			// we want that for each cut, we have a capacity of 2 (i.e. one ingoing edge and one outgoing edge).
-			// So we want to seek the cuts which don't have a capacity of 2. The cuts with capacity < 2 violates the 
-			// constraints and we are going to add SEC to them.
-			// NB: We use cutoff as 2.0 - EPS for numerical stability due the fractional values we obtain in the solution. 
-			if (CCcut_violated_cuts(inst->nnodes, inst->ncols, elist, xstar, 2.0 - EPSILON, violated_cuts_callback, &params))
-			{
-				print_error("%d, CCcut_violated_cuts() error ", __LINE__);
-			}
-		}
-		else //ncomps > 1
-		{
-			int startindex = 0;
-
-			int* components = MALLOC(inst->nnodes, int);
-
-			// Transforming the concorde's component format into our component format in order to use our addSEC function
-			for (int subtour = 0; subtour < numcomps; subtour++)
-			{
-				for (int i = startindex; i < startindex + compscount[subtour]; i++)
-				{
-					int index = comps[i];
-					components[index] = subtour + 1;
-				}
-				startindex += compscount[subtour];
-			}
-
-			int* indexes = MALLOC(inst->ncols, int);
-			double* values = MALLOC(inst->ncols, double);
-			for (int subtour = 1; subtour <= numcomps; subtour++)
-			{
-				// For each subtour we add the constraints in one shot
-				add_SEC_cuts_fractional(inst, context, subtour, components, indexes, values);
-			}
-			free(indexes);
-			free(values);
-			free(components);
-		}
-
+		print_error("%d, CCcut_connect_components() error ", __LINE__);
 	}
+
+	if (numcomps == 1)
+	{
+		relaxation_callback_params params = { .context = context, .inst = inst };
+		// At this point we have a connected graph. This graph could not be a "tsp". We interpret the fractional
+		// solution as capacity of a cut. A cut of a graph G is composed by S and T = V - S where V is the nodes set.
+		// The capacity of the cut is the sum of all ingoing and outgoing edges of the cut. Since we have a TSP,
+		// we want that for each cut, we have a capacity of 2 (i.e. one ingoing edge and one outgoing edge).
+		// So we want to seek the cuts which don't have a capacity of 2. The cuts with capacity < 2 violates the 
+		// constraints and we are going to add SEC to them.
+		// NB: We use cutoff as 2.0 - EPS for numerical stability due the fractional values we obtain in the solution. 
+		if (CCcut_violated_cuts(inst->nnodes, inst->ncols, elist, xstar, 2.0 - EPSILON, violated_cuts_callback, &params))
+		{
+			print_error("%d, CCcut_violated_cuts() error ", __LINE__);
+		}
+	}
+	else //ncomps > 1
+	{
+		int startindex = 0;
+
+		int* components = MALLOC(inst->nnodes, int);
+
+		// Transforming the concorde's component format into our component format in order to use our addSEC function
+		for (int subtour = 0; subtour < numcomps; subtour++)
+		{
+			for (int i = startindex; i < startindex + compscount[subtour]; i++)
+			{
+				int index = comps[i];
+				components[index] = subtour + 1;
+			}
+			startindex += compscount[subtour];
+		}
+
+		int* indexes = MALLOC(inst->ncols, int);
+		double* values = MALLOC(inst->ncols, double);
+		for (int subtour = 1; subtour <= numcomps; subtour++)
+		{
+			// For each subtour we add the constraints in one shot
+			add_SEC_cuts_fractional(inst, context, subtour, components, indexes, values);
+		}
+		free(indexes);
+		free(values);
+		free(components);
+	}
+
+
 
 	free(xstar);
+
+	return 0;
+}
+
+
+
+void callback_solution(Instance* inst, CPXENVptr env, CPXLPptr lp)
+{
+	//TODO maybe add mipstart
+	int ncomp;
+	int ncols = CPXgetnumcols(env, lp);
+	inst->ncols = ncols;
+	double* xstar = (double*)calloc(ncols, sizeof(double));
+	int* succ = (int*)malloc(inst->nnodes * sizeof(int));
+	int* comp = (int*)malloc(inst->nnodes * sizeof(int));
+	// install callback
+	CPXLONG contextid = CPX_CALLBACKCONTEXT_CANDIDATE| CPX_CALLBACKCONTEXT_RELAXATION; // ... means lazyconstraints
+	if (CPXcallbacksetfunc(env, lp, contextid, my_callback, inst)) print_error("CPXcallbacksetfunc() error", __LINE__);
+	CPXmipopt(env, lp); //callback installed
+	if (CPXgetx(env, lp, xstar, 0, inst->ncols - 1)) print_error("CPXgetx() error", __LINE__);
+
+	build_sol(xstar, inst, succ, comp, &ncomp);
+
+
+	if (inst->bestcost > mip_value(env, lp)) {
+		inst->bestcost = mip_value(env, lp);
+		transform_in_perm_and_save(succ, inst);
+		if (inst->verbose > 3) {
+			printf("\nUpdated cost: %f", inst->bestcost);
+		}
+	}
+	free(xstar);
+	free(comp);
+	free(succ);
+
+}
+
+
+void add_SEC_callback(Instance* inst, const int ncomp, int* comp, CPXCALLBACKCONTEXTptr context)
+{
+	// add the degree constraints 
+	int ncols = inst->ncols;
+	int* index = CALLOC(ncols, int);
+	double* value = CALLOC(ncols, double);
+	char** cname = CALLOC(1, char*);
+	cname[0] = CALLOC(100, char);
+
+	//for every component
+	for (int c = 1; c <= ncomp; c++)
+	{
+		double rhs = 0;
+		for (int i = 0; i < inst->nnodes; i++)
+		{
+			if (comp[i] == c)
+			{
+				rhs++;
+			}
+		}
+		//rhs to |S|-1
+		rhs--;
+
+		char sense = 'L';
+		int nnz = 0;
+		sprintf(cname[0], "SEC");
+		for (int i = 0; i < inst->nnodes - 1; i++)
+		{
+			if (comp[i] != c)
+				continue;
+			for (int j = i + 1; j < inst->nnodes; j++)
+			{
+				if (comp[j] != c)
+					continue;
+				index[nnz] = xpos(i, j, inst);
+				value[nnz] = 1;
+				nnz++;
+			}
+		}
+		int izero = 0;
+		if (CPXcallbackrejectcandidate(context, 1, nnz, &rhs, &sense, &izero, index, value))
+		{
+			print_error("%d, CPXrejectcandidate(): error 1", __LINE__);
+		}
+	}
+
+
+
+	//free
+	free(index);
+	free(value);
+	free(cname[0]);
+	free(cname);
+}
+
+
+
+
+int TSPoptBend(Instance* inst)
+{
+
+	// open CPLEX model
+	int error;
+	CPXENVptr env = CPXopenCPLEX(&error);
+	if (error)
+	{
+		print_error("%d, CPXopenCPLEX() error", __LINE__);
+	}
+	CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");
+	if (error)
+	{
+		print_error("%d, CPXcreateprob() error", __LINE__);
+	}
+
+	build_model(inst, env, lp);
+	// ADD A UB WITH HEURSTICS  
+
+	// Cplex's parameter setting
+//	CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
+	if (inst->verbose > 10)
+	{
+		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
+	}
+	CPXsetintparam(env, CPX_PARAM_RANDOMSEED, inst->randomseed);
+	//CPXsetdblparam(env,CPX_PARAM_CUTUP,UB);
+	CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit);
+
+
+	benders_loop(inst, env, lp);
+
+
+
+	//TODO divide in separate functions with wrapper to choose the solver method
+	//benders_loop(inst, env, lp);
+
+	//just print one line with lb at every iteration
+	if (inst->verbose >= 20)
+	{
+		CPXwriteprob(env, lp, "../../Traveling-Salesman-Optimization/data/model.lp", NULL);
+	}
+
+	// free and close cplex model   
+	CPXfreeprob(env, &lp);
+	CPXcloseCPLEX(&env);
+	//printf(",%f\n", time(NULL) - inst->tstart);
+
+	return 0;
+}
+
+
+
+static int CPXPUBLIC my_callback_candidate(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle)
+{
+	Instance* inst = (Instance*)userhandle;
+	double* xstar = MALLOC(inst->ncols, double);
+	double objval = CPX_INFBOUND;
+
+	if (CPXcallbackgetcandidatepoint(context, xstar, 0, inst->ncols - 1, &objval))// gets first candidate point
+		print_error("CPXcallbackgetcandidatepoint error", __LINE__);
+
+	//allocate memory for results
+	int* succ = MALLOC(inst->nnodes, int);
+	int* comp = MALLOC(inst->nnodes, int);
+	int ncomp;
+	build_sol(xstar, inst, succ, comp, &ncomp);
+
+	//check if the solution is feasible
+	if (ncomp > 1)
+	{
+		//ADD ALL SECS
+		add_SEC_callback(inst, ncomp, comp, context);
+
+	}
+
+
+	free(xstar);
+	free(succ);
+	free(comp);
+
 
 	return 0;
 }
