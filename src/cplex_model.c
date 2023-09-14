@@ -18,7 +18,6 @@ int TSPopt(Instance* inst)
 	}
 
 	build_model(inst, env, lp);
-	// ADD A UB WITH HEURSTICS  
 
 	// Cplex's parameter setting
 	//CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
@@ -30,13 +29,10 @@ int TSPopt(Instance* inst)
 	//CPXsetdblparam(env,CPX_PARAM_CUTUP,UB);
 	CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit);
 
-
-	callback_solution(inst, env, lp);
-
-
-
-	//TODO divide in separate functions with wrapper to choose the solver method
-	//benders_loop(inst, env, lp);
+	if(inst->solver.id == CPLEX_BENDERS)
+		benders_loop(inst, env, lp);
+	else if (inst->solver.id == CPLEX_CALLBACK)
+		callback_solution(inst, env, lp);
 
 	//just print one line with lb at every iteration
 	if (inst->verbose >= 20)
@@ -443,7 +439,7 @@ double patching(Instance* inst, int ncomp, int* comp, int* succ)
 	}
 	return cost;
 
-	//TODO maybe add 2-opt before return to make better incumbent
+	//maybe add 2-opt before return to make better incumbent
 }
 /********************************************************************************************************/
 static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle)
@@ -545,11 +541,9 @@ static int CPXPUBLIC my_callback_fractional(CPXCALLBACKCONTEXTptr context, CPXLO
 	return 0;
 }
 
-
-
 void callback_solution(Instance* inst, CPXENVptr env, CPXLPptr lp)
 {
-	//TODO maybe add mipstart
+	//maybe add mipstart
 	int ncomp;
 	int ncols = CPXgetnumcols(env, lp);
 	inst->ncols = ncols;
@@ -577,7 +571,6 @@ void callback_solution(Instance* inst, CPXENVptr env, CPXLPptr lp)
 	free(succ);
 
 }
-
 
 void add_SEC_callback(Instance* inst, const int ncomp, int* comp, CPXCALLBACKCONTEXTptr context)
 {
@@ -633,62 +626,6 @@ void add_SEC_callback(Instance* inst, const int ncomp, int* comp, CPXCALLBACKCON
 	free(cname[0]);
 	free(cname);
 }
-
-
-
-
-int TSPoptBend(Instance* inst)
-{
-
-	// open CPLEX model
-	int error;
-	CPXENVptr env = CPXopenCPLEX(&error);
-	if (error)
-	{
-		print_error("%d, CPXopenCPLEX() error", __LINE__);
-	}
-	CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");
-	if (error)
-	{
-		print_error("%d, CPXcreateprob() error", __LINE__);
-	}
-
-	build_model(inst, env, lp);
-	// ADD A UB WITH HEURSTICS  
-
-	// Cplex's parameter setting
-//	CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
-	if (inst->verbose > 10)
-	{
-		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
-	}
-	CPXsetintparam(env, CPX_PARAM_RANDOMSEED, inst->randomseed);
-	//CPXsetdblparam(env,CPX_PARAM_CUTUP,UB);
-	CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit);
-
-
-	benders_loop(inst, env, lp);
-
-
-
-	//TODO divide in separate functions with wrapper to choose the solver method
-	//benders_loop(inst, env, lp);
-
-	//just print one line with lb at every iteration
-	if (inst->verbose >= 20)
-	{
-		CPXwriteprob(env, lp, "../../Traveling-Salesman-Optimization/data/model.lp", NULL);
-	}
-
-	// free and close cplex model   
-	CPXfreeprob(env, &lp);
-	CPXcloseCPLEX(&env);
-	//printf(",%f\n", time(NULL) - inst->tstart);
-
-	return 0;
-}
-
-
 
 static int CPXPUBLIC my_callback_candidate(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle)
 {
