@@ -265,7 +265,7 @@ void benders_loop(Instance* inst, CPXENVptr env, CPXLPptr lp)
 			{
 				CPXsetdblparam(env, CPXPARAM_MIP_Tolerances_UpperCutoff, patched_cost);
 				if (inst->verbose > 3) {
-					printf("previous upperbound was: %f, new computed is %f\n", prev_ub, patched_cost);
+					printf("\nprevious upperbound was: %f, new computed is %f\n", prev_ub, patched_cost);
 				}
 
 			}
@@ -453,8 +453,6 @@ double patching(Instance* inst, int ncomp, int* comp, int* succ)
 	double cost = 0;
 	for (int i = 0; i < inst->nnodes; i++)
 	{
-		printf("\n i= %d succ= %d", i, succ[i]);
-
 		cost += COST(i, succ[i]);
 	}
 	return cost;
@@ -481,8 +479,33 @@ void callback_solution(Instance* inst, CPXENVptr env, CPXLPptr lp)
 		print_error("%d, CPXmipopt() error", __LINE__);
 	}
 
+	//allocate memory for results
+	int* succ = MALLOC(inst->nnodes, int);
+	int* comp = MALLOC(inst->nnodes, int);
+	int ncomp = 2;
 
+	//get results
+	ncols = CPXgetnumcols(env, lp);
+	double* xstar = CALLOC(ncols, double);
+	if (CPXgetx(env, lp, xstar, 0, ncols - 1))
+	{
+		print_error("CPXgetx() error", __LINE__);
+	}
+	build_sol(xstar, inst, succ, comp, &ncomp);
 
+	free(xstar);
+
+	if (inst->bestcost > mip_value(env, lp))
+	{
+		inst->bestcost = mip_value(env, lp);
+		transform_in_perm_and_save(succ, inst);
+		if (inst->verbose > 3)
+			printf("\nUpdated cost: %f", inst->bestcost);
+	}
+
+	//free
+	free(comp);
+	free(succ);
 }
 
 static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle)
@@ -494,6 +517,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 	//check if we have integer solution -- LAZY CUT
 	if (contextid == CPX_CALLBACKCONTEXT_CANDIDATE)
 	{
+		printf("\nLAZY CUT - INTEGER SOLUTION\n");
 		if (CPXcallbackgetcandidatepoint(context, xstar, 0, inst->ncols - 1, &objval))
 			print_error("CPXcallbackgetcandidatepoint error", __LINE__);
 
@@ -540,11 +564,11 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 		free(cname);
 
 	}
-
+	/*
 	//check if we have a fractional solution -- USER CUT
 	if (contextid == CPX_CALLBACKCONTEXT_RELAXATION)
 	{
-		//printf("sono qui a user cut");
+		printf("\nUSER CUT - FRACTIONAL SOLUTION\n");
 		if (CPXcallbackgetrelaxationpoint(context, xstar, 0, inst->ncols - 1, &objval))
 			print_error("CPXcallbackgetrelaxationpoint error", __LINE__);
 
@@ -618,7 +642,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 			free(components);
 		}
 
-	}
+	}*/
 
 	free(xstar);
 

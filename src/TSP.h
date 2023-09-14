@@ -58,6 +58,7 @@ typedef struct
 	solver_id id;
 	double p1, p2; //probabilities for GRASP
 	em_start start;
+	char solver_name[20];
 }solver;
 
 typedef struct

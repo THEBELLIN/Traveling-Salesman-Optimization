@@ -40,7 +40,7 @@ void local_branching(Instance* inst) {
 	//----------------------
 	//printf("fine building model\n");
 	//set time limit
-	CPXsetdblparam(env, CPX_PARAM_TILIM, timelimit - (time(NULL) - start));
+	CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit - (time(NULL) - start));
 	//----------------------
 
 	// allocate memory for local branching constraint
@@ -56,7 +56,7 @@ void local_branching(Instance* inst) {
 	inst->ncols = CPXgetnumcols(env, lp);
 	//while cycle untill i have time
 	int iter = 0;
-	while (time(NULL) < start + timelimit) {
+	while (time(NULL) < start + inst->time_limit) {
 		// post a solution
 		add_mip_start(inst, env, lp, inst->bestsol);
 		// add branching constraint
@@ -75,8 +75,8 @@ void local_branching(Instance* inst) {
 		if (CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0])) print_error("Error in adding row for local branchin", __LINE__);
 
 		//set the time to spend getting a better solution
-		if (timelimit - (time(NULL) - start) < time_per_call) {
-			CPXsetdblparam(env, CPX_PARAM_TILIM, timelimit - (time(NULL) - start));
+		if (inst->time_limit - (time(NULL) - start) < time_per_call) {
+			CPXsetdblparam(env, CPX_PARAM_TILIM, inst->time_limit - (time(NULL) - start));
 		}
 		else
 			CPXsetdblparam(env, CPX_PARAM_TILIM, time_per_call);

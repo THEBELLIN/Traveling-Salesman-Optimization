@@ -171,6 +171,7 @@ void parse_args(Instance* inst, int argc, char** argv)
 				inst->solver.id = HARD_FIXING;
 			else
 				print_error("solver not recognized", __LINE__);
+			strncpy(inst->solver.solver_name, argv[i], 20);
 			continue;
 		}
 	}
@@ -178,6 +179,8 @@ void parse_args(Instance* inst, int argc, char** argv)
 
 
 void print_params(Instance* inst) {
+	//print the solver used
+	printf("\nsolver: %s", inst->solver.solver_name);
 	printf("\ninput file:%s", inst->inputfile);
 	printf("\nnnodes:%d", inst->nnodes);
 	printf("\ntabu_tenure:%d", inst->tabu_tenure);
