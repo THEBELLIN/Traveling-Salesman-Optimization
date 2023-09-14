@@ -36,7 +36,7 @@ void local_branching(Instance* inst) {
 		CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
 	}
 	// build the degree model
-	build_model(inst, env, lp);
+	callback_solution(inst, env, lp);
 	//----------------------
 	//printf("fine building model\n");
 	//set time limit
