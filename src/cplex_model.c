@@ -564,7 +564,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 		free(cname);
 
 	}
-	/*
+	
 	//check if we have a fractional solution -- USER CUT
 	if (contextid == CPX_CALLBACKCONTEXT_RELAXATION)
 	{
@@ -642,7 +642,7 @@ static int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contexti
 			free(components);
 		}
 
-	}*/
+	}
 
 	free(xstar);
 
